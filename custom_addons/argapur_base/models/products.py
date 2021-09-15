@@ -7,11 +7,12 @@ _logger = logging.getLogger(__name__)
 
 
 wcapi = API(
-    url="https://argapur.com",
-    consumer_key="ck_6dc4638e541317096bd4bf260bb1edbe543b849c",
-    consumer_secret="cs_6ded056384552b0d6cd07691595830e7e663c44b",
+    url="https://argapur.com/en",
+    consumer_key="ck_2931746f6adf193ca9fd1a067e4758829c6dcd73",
+    consumer_secret="cs_3a9c56a3cded7ba6615c86887200bd647e0a892b",
     wp_api=True,
-    version="wc/v3"
+    version="wc/v3",
+    query_string_auth=True
 )
 
 class ProducttemplateInherited(models.Model):
@@ -22,10 +23,11 @@ class ProducttemplateInherited(models.Model):
     def synchronise_produits_list_avec_wordpress(self):
         active_ids = self.env.context.get('active_ids', [])
         _logger.warning(active_ids)
-        products_ids = self.env['product.product'].browse(active_ids)
+        products_template_ids = self.env['product.template'].browse(active_ids)
+        _logger.warning(products_template_ids)
 
         products_list = []
-        for product in products_ids:
+        for product in products_template_ids:
             if not product.synchronisable:
                 raise Warning('Le Produit \' '+product.name+'\' n\'est pas synchronisable.')
             elif product.barcode:
@@ -45,11 +47,16 @@ class ProducttemplateInherited(models.Model):
             res = wcapi.post("products", data).json()
             if 'code' in res:
                 msg = 'Le Produit ( ' + product.name + ' ) n\' est pas créé sous Wordpress \n'
-                msg += 'Code : ' + res['code'] + '\n'
-                msg += 'message : ' + res['message'] + '\n'
+                msg += 'Code : ' + str(res['code']) + '\n'
+                msg += 'message : ' + str(res['message']) + '\n'
                 res_data = res['data']
-                for key, value in res_data['params'].items():
-                    msg += key + ' : ' + value + '\n'
+
+                if 'params' in res_data:
+                    for key, value in res_data['params'].items():
+                        msg += str(key) + ' : ' + str(value) + '\n'
+                else:
+                    for key, value in res_data.items():
+                        msg += str(key) + ' : ' + str(value) + '\n'
                 raise Warning(msg)
             else:
                 product.write({
