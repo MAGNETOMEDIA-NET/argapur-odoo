@@ -17,6 +17,7 @@
         'sale_management',
     ],
     'data': [
+        'views/product_list_view.xml',
     ],
     'demo': [],
     'installable': True,
