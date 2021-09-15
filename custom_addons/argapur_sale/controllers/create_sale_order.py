@@ -43,11 +43,13 @@ class WPBaskets(Controller):
             child_ids.street2 = customer['address_2']
             return partner
         else:
-            name = customer['first_name'] + customer['last_name']
+            name = customer['first_name'] + ' ' + customer['last_name']
+            country = request.env['res.country'].sudo().search([('name', '=', customer['country'])])
             partner_values = {
                 'name': name,
                 'phone': customer['phone'],
                 'email': customer['email'],
+                'country_id': country.id,
             }
             partner = request.env['res.partner'].sudo().create(partner_values)
             shipping_childs = self.create_shipping_childs(baskets, partner)
@@ -95,7 +97,7 @@ class WPBaskets(Controller):
 
     def create_shipping_childs(self, baskets, partner):
         customer = baskets.get('billing')
-        name = customer['first_name'] + customer['last_name']
+        name = customer['first_name'] + ' ' + customer['last_name']
         shipping_childs = {
             'type': 'delivery',
             'name': name,
