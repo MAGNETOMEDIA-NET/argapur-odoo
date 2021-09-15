@@ -9,7 +9,7 @@
             <field name="arch" type="xml">
                 <xpath expr="//tree" position="inside">
                     <header>
-                        <button name="wp_sync" string="Syncronisé avec WP" type="object" class="btn-primary"/>
+                        <button name="synchronise_produits_list_avec_wordpress" string="Syncronisé avec WP" type="object" class="btn-primary"/>
                     </header>
                 </xpath>
             </field>

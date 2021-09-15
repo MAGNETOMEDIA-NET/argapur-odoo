@@ -2,6 +2,9 @@ from odoo.exceptions import Warning
 import json
 from woocommerce import API
 from odoo import api, fields, models, tools, _, SUPERUSER_ID
+import logging
+_logger = logging.getLogger(__name__)
+
 
 wcapi = API(
     url="https://argapur.com",
@@ -16,8 +19,11 @@ class ProducttemplateInherited(models.Model):
 
     synchronisable = fields.Boolean(string="Synchronisable", default=False)
 
-    def wp_sync(self):
-        products_ids = self.env['product.product'].browse(self.env.context.get('active_ids'))
+    def synchronise_produits_list_avec_wordpress(self):
+        active_ids = self.env.context.get('active_ids', [])
+        _logger.warning(active_ids)
+        products_ids = self.env['product.product'].browse(active_ids)
+
         products_list = []
         for product in products_ids:
             if not product.synchronisable:
