@@ -15,6 +15,18 @@
             </field>
         </record>
 
+        <record id="inherit_product_template_form_view" model="ir.ui.view">
+            <field name="name">product.template.form.view.inherited</field>
+            <field name="model">product.template</field>
+            <field name="inherit_id" ref="product.product_template_only_form_view"/>
+            <field name="type">form</field>
+            <field name="arch" type="xml">
+                <header>
+                    <button name="synchronise_product_price" string="Synchronise le Prix" type="object" class="oe_highlight" />
+                </header>
+            </field>
+        </record>
+
         <record id="product_normal_form_view_add_sync" model="ir.ui.view">
             <field name="name">product.normal.form</field>
             <field name="model">product.product</field>
