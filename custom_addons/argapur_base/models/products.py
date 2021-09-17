@@ -19,38 +19,8 @@ class ProducttemplateInherited(models.Model):
     _inherit = "product.template"
 
     synchronisable = fields.Boolean(string="Synchronisable", default=False)
+    product_wp_id = fields.Char(string="product ID in Wordpress")
 
-    def synchronise_produits_list_avec_wordpress(self):
-        active_ids = self.env.context.get('active_ids', [])
-        products_template_ids = self.env['product.template'].browse(active_ids)
-
-        products_list = []
-        for product in products_template_ids:
-            if not product.synchronisable:
-                raise Warning('Le Produit \' '+product.name+'\' n\'est pas synchronisable.')
-            elif product.barcode and product.barcode != '':
-                raise Warning('Le Produit \' '+product.name+'\' est déjà synchronise.')
-            else:
-                products_list.append(product)
-
-        for product in products_list:
-            data = {
-                "name": product.name,
-                "type": "simple",
-                "regular_price": str(product.list_price),
-                "description": product.description,
-                "categories": [],
-                "images": []
-            }
-            res = wcapi.post("products", data).json()
-            if 'code' in res:
-                self.show_error_message(res)
-            else:
-                message = 'Le produit '+ product.name + 'est synchronise avec WordPress'
-                _logger.info(message)
-                product.write({
-                    'barcode': res['id']
-                })
 
     def show_error_message(self, res):
         msg = 'WordPress API :'
@@ -65,14 +35,81 @@ class ProducttemplateInherited(models.Model):
                 msg += str(key) + ' : ' + str(value) + '\n'
         raise Warning(msg)
 
+    def get_product_qty_available(self):
+
+        stock = self.env['stock.quant'].search([('product_id','=',self.id),('quantity','>=',0)])
+
+        qty_available = stock.quantity - stock.reserved_quantity
+        return qty_available
+
+    def synchronise_produits_list_avec_wordpress(self):
+        active_ids = self.env.context.get('active_ids', [])
+        products_template_ids = self.env['product.template'].browse(active_ids)
+
+        products_list = []
+        for product in products_template_ids:
+            if not product.synchronisable:
+                raise Warning('Le Produit \' '+product.name+'\' n\'est pas synchronisable.')
+            elif not product.sale_ok:
+                raise Warning('Le Produit \' '+product.name+' \' ne peut pas etre vendu.')
+            else:
+                products_list.append(product)
+
+        for product in products_list:
+            product_qty_available = self.get_product_qty_available()
+            data = {
+                "name": product.name,
+                "type": "simple",
+                "regular_price": str(product.list_price),
+                "description": product.description,
+                "manage_stock": True,
+                "stock_quantity": product_qty_available,
+                "categories": [],
+                "images": []
+            }
+            if not product.product_wp_id or product.product_wp_id == '':
+                res = wcapi.post("products", data).json()
+            else:
+                res = wcapi.put("products/"+str(product.product_wp_id), data).json()
+            if 'code' in res:
+                self.show_error_message(res)
+            else:
+                message = 'Le produit '+ product.name + 'est synchronise avec WordPress'
+                _logger.info(message)
+                product.write({
+                    'product_wp_id': res['id']
+                })
+
+    def synchronise_product(self):
+        product_qty_available = self.get_product_qty_available()
+        data = {
+            "name": self.name,
+            "type": "simple",
+            "regular_price": str(self.list_price),
+            "description": self.description,
+            "manage_stock": True,
+            "stock_quantity": product_qty_available,
+            "categories": [],
+            "images": []
+        }
+        if not self.product_wp_id or self.product_wp_id == '':
+            res = wcapi.post("products", data).json()
+        else:
+            res = wcapi.put("products/"+str(self.product_wp_id), data).json()
+        if 'code' in res:
+            self.show_error_message(res)
+        self.write({
+            'product_wp_id' : res['id']
+        })
+
     def synchronise_product_price(self):
         if not self.synchronisable:
             raise Warning('Ce Produit n\'est pas synchronisable.')
 
-        if not self.barcode or self.barcode == '':
+        if not self.product_wp_id or self.product_wp_id == '':
             raise Warning('Ce Produit n\'est pas encore synchronise avec WordPress.')
-        product_wp_di = self.barcode
-        res = wcapi.get("products/"+str(product_wp_di)).json()
+        product_wp_id = self.product_wp_id
+        res = wcapi.get("products/"+str(product_wp_id)).json()
         if 'code' in res:
             self.show_error_message(res)
         else:
@@ -83,16 +120,8 @@ class ProducttemplateInherited(models.Model):
             data = {
                 "regular_price": str(self.list_price)
             }
-            res = wcapi.put("products/"+str(product_wp_di), data).json()
+            res = wcapi.put("products/"+str(product_wp_id), data).json()
             if 'code' in res:
                 self.show_error_message(res)
             else:
                 raise Warning('Le prix de ce Produit est synchronise avec succès.')
-
-
-
-
-
-
-
-
