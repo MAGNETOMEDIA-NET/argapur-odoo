@@ -80,12 +80,15 @@ class WPBaskets(Controller):
         payment_term = self._check_payment_term(baskets)
         order_line_ids = []
         order_values = {}
+        salesperson = request.env['res.users'].sudo().search([('name', '=', 'Administrator')])
+        print(salesperson)
         for element in so_lines:
             order_line_ids.append([0, 0, element])
         order_values.update({
             'partner_id': partner and partner.id,
             'order_line': order_line_ids,
             'payment_term_id': payment_term.id,
+            'user_id' : salesperson.id,
         })
         return request.env['sale.order'].sudo().create(order_values)
 

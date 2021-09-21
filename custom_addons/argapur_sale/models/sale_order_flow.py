@@ -10,12 +10,12 @@ class SaleOrder(models.Model):
             invoice_id = order._create_invoice_ecom_posted()
             self.send_invoice_mail(invoice_id)
             available = self.check_availability(order)
-            print(available)
+            self.do_register_payment(invoice_id)
 
             if available and order.payment_term_id.name == 'Carte bancaire':
                 pickings = []
                 self.validate_pick(pickings, order)
-                self.do_register_payment(invoice_id)
+
         return res
 
     def send_invoice_mail(self, invoice_object):
