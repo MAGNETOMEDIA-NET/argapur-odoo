@@ -19,6 +19,7 @@
     ],
     'data': [
         'views/product_list_view.xml',
+        "data/res_config_settings.xml",
     ],
     'demo': [],
     'installable': True,
