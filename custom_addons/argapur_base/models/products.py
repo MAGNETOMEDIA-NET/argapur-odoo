@@ -37,8 +37,8 @@ class ProducttemplateInherited(models.Model):
 
     def get_product_qty_available(self):
 
-        stock = self.env['stock.quant'].search([('product_id','=',self.id),('quantity','>=',0)])
-
+        product_id = self.env['product.product'].search([('product_tmpl_id','=',self.id)]).id
+        stock = self.env['stock.quant'].search([('product_id', '=', product_id), ('location_id.name', '=', 'Stock')])
         qty_available = stock.quantity - stock.reserved_quantity
         return qty_available
 

@@ -19,9 +19,51 @@ class stockQuantInherited(models.Model):
     _inherit = 'stock.quant'
 
 
+    def create(self, vals):
+        resp = super(stockQuantInherited, self).create(vals)
+
+        location_name = self.env['stock.location'].search([('id','=',vals['location_id'])]).name
+        product = self.env['product.product'].search([('id','=',vals['product_id'])])
+
+        if str(location_name).strip() != 'Stock':
+            return resp
+
+        if not product.product_tmpl_id.synchronisable:
+            return resp
+        if 'reserved_quantity' in vals or 'quantity' in vals:
+            if not product.product_tmpl_id.product_wp_id or product.product_tmpl_id.product_wp_id == '':
+                return resp
+
+            available_qty = vals['quantity']
+
+            data = {
+                'stock_quantity': abs(available_qty)
+            }
+            res = wcapi.put("products/"+str(product.product_tmpl_id.product_wp_id), data).json()
+            if 'code' in res:
+                _logger.info("Something wrong during updating product Quantity")
+                _logger.info('Wordpress Api :')
+                msg = 'Code : ' + str(res['code'])
+                _logger.info(msg)
+                msg = 'message : ' + str(res['message'])
+                _logger.info(msg)
+            else:
+                msg = 'the quantity of the product'+product.product_tmpl_id.name+' est synchronise.'
+                _logger.info(msg)
+        return resp
+
+
     def write(self, vals):
         resp = super(stockQuantInherited, self).write(vals)
 
+        if 'location_id' in vals:
+            location_name = self.env['stock.location'].search([('id','=',vals['location_id'])]).name
+            if location_name != 'Stock':
+                return resp
+        elif self.location_id.name != 'Stock':
+            return resp
+        if not self.product_id.synchronisable:
+            return resp
         if 'reserved_quantity' in vals or 'quantity' in vals:
 
             if not self.product_id.product_wp_id or self.product_id.product_wp_id == '':
