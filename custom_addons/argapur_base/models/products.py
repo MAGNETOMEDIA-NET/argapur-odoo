@@ -18,9 +18,53 @@ wcapi = API(
 class ProducttemplateInherited(models.Model):
     _inherit = "product.template"
 
-    synchronisable = fields.Boolean(string="Synchronisable", default=False)
-    product_wp_id = fields.Char(string="product ID in Wordpress")
+    produit_fini = fields.Boolean(string="Produit Fini", default=False)
+    synchronise = fields.Boolean(string="Synchronisé", default=False, readonly=True)
+    product_wp_id = fields.Char(string="product ID in Wordpress", default="")
 
+    @api.model
+    def create(self, vals):
+        resp = super(ProducttemplateInherited, self).create(vals)
+
+        if 'produit_fini' in vals:
+            if vals['produit_fini']:
+                raise Warning('Vous ne pouvez pas créer un Produit Fini sans ajouter les informations nécessaires :\n'
+                              '+ Nomenclature \n'
+                              '+ Régle d \'approvisionnement.')
+        return resp
+
+    def write(self, vals):
+        resp = super(ProducttemplateInherited, self).write(vals)
+
+        if 'produit_fini' in vals:
+            if not vals['produit_fini']:
+                self.synchronise = False
+            else:
+                product = self.env['product.product'].search([('product_tmpl_id','=',self.id)])
+                # check if stockable
+                if self.type != 'product':
+                    raise Warning('Ce Produit ne peut pas être un Produit Fini:\n'
+                                  'message : il n\'est pas stockable (Storable).')
+
+                # check Route if 'Manufacturing'
+                location_route = self.env['stock.location.route'].search([('name','=','Manufacture')], limit=1)
+                if location_route not in self.route_ids:
+                    raise Warning('Ce Produit ne peut pas être un Produit Fini : \n'
+                                  'message : il n\'a pas de voie de fabrication (Manufacturing route).')
+
+                # check Nomenclature
+                mrp_bom = self.env['mrp.bom'].search([('product_tmpl_id','=',self.id)])
+                if not mrp_bom:
+                    raise Warning('Ce Produit ne peut pas être un Produit Fini :\n'
+                                  'message : il n\'a pas Nomenclature (Bill of Materials).')
+
+                # check regles d'approvisionnement
+                orderpoint = self.env['stock.warehouse.orderpoint'].search([('product_id','=',product.id)])
+                if not orderpoint:
+                    raise Warning ('Ce Produit ne peut pas être un Produit Fini: \n'
+                                   'message : il n\'a pas des regles d\'approvisionnement (Recordering Rules).')
+
+        return resp
 
     def show_error_message(self, res):
         msg = 'WordPress API :'
@@ -48,8 +92,8 @@ class ProducttemplateInherited(models.Model):
 
         products_list = []
         for product in products_template_ids:
-            if not product.synchronisable:
-                raise Warning('Le Produit \' '+product.name+'\' n\'est pas synchronisable.')
+            if not product.produit_fini:
+                raise Warning('Le Produit \' '+product.name+'\' n\'est pas un Produit Fini.')
             elif not product.sale_ok:
                 raise Warning('Le Produit \' '+product.name+' \' ne peut pas etre vendu.')
             else:
@@ -67,7 +111,7 @@ class ProducttemplateInherited(models.Model):
                 "categories": [],
                 "images": []
             }
-            if not product.product_wp_id or product.product_wp_id == '':
+            if not product.synchronise:
                 res = wcapi.post("products", data).json()
             else:
                 res = wcapi.put("products/"+str(product.product_wp_id), data).json()
@@ -77,6 +121,7 @@ class ProducttemplateInherited(models.Model):
                 message = 'Le produit '+ product.name + 'est synchronise avec WordPress'
                 _logger.info(message)
                 product.write({
+                    'synchronise': True,
                     'product_wp_id': res['id']
                 })
 
@@ -92,22 +137,19 @@ class ProducttemplateInherited(models.Model):
             "categories": [],
             "images": []
         }
-        if not self.product_wp_id or self.product_wp_id == '':
+        if not self.synchronise:
             res = wcapi.post("products", data).json()
         else:
             res = wcapi.put("products/"+str(self.product_wp_id), data).json()
         if 'code' in res:
             self.show_error_message(res)
         self.write({
+            'synchronise' : True,
             'product_wp_id' : res['id']
         })
 
     def synchronise_product_price(self):
-        if not self.synchronisable:
-            raise Warning('Ce Produit n\'est pas synchronisable.')
 
-        if not self.product_wp_id or self.product_wp_id == '':
-            raise Warning('Ce Produit n\'est pas encore synchronise avec WordPress.')
         product_wp_id = self.product_wp_id
         res = wcapi.get("products/"+str(product_wp_id)).json()
         if 'code' in res:
@@ -115,7 +157,7 @@ class ProducttemplateInherited(models.Model):
         else:
             wp_product_price = res['regular_price']
             if float(wp_product_price) == float(self.list_price):
-                raise Warning('Le prix de ce Produit est a jour avec WordPress (Rien a modifier).')
+                raise Warning('Le prix de ce Produit est a jour avec WordPress.')
 
             data = {
                 "regular_price": str(self.list_price)
