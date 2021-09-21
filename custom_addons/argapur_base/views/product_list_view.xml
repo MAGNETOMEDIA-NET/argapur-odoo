@@ -11,7 +11,6 @@
                     <separator/>
                     <filter string="Synchronisable" name="product_can_be_synchronise"
                             domain="[('present_sur_site','=',True),('synchronise','=',False)]"/>
-                    <separator/>
                     <filter string="Déjà synchronisé" name="products_already_synchronise"
                             domain="[('present_sur_site','=',True),('synchronise','=',True)]"/>
                 </filter>
