@@ -52,7 +52,6 @@ class stockQuantInherited(models.Model):
                 _logger.info(msg)
         return resp
 
-    @api.model
     def write(self, vals):
         resp = super(stockQuantInherited, self).write(vals)
 
