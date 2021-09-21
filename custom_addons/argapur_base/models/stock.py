@@ -28,10 +28,10 @@ class stockQuantInherited(models.Model):
         if str(location_name).strip() != 'Stock':
             return resp
 
-        if not product.product_tmpl_id.synchronisable:
+        if not product.product_tmpl_id.synchronise:
             return resp
         if 'reserved_quantity' in vals or 'quantity' in vals:
-            if not product.product_tmpl_id.product_wp_id or product.product_tmpl_id.product_wp_id == '':
+            if product.product_tmpl_id.product_wp_id == '':
                 return resp
 
             available_qty = vals['quantity']
@@ -61,11 +61,11 @@ class stockQuantInherited(models.Model):
                 return resp
         elif self.location_id.name != 'Stock':
             return resp
-        if not self.product_id.synchronisable:
+        if not self.product_id.synchronise:
             return resp
         if 'reserved_quantity' in vals or 'quantity' in vals:
 
-            if not self.product_id.product_wp_id or self.product_id.product_wp_id == '':
+            if self.product_id.product_wp_id == '':
                 return resp
 
             self.available_quantity = self.quantity - self.reserved_quantity
