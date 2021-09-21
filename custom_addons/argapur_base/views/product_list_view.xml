@@ -9,6 +9,7 @@
             <field name="arch" type="xml">
                 <xpath expr="//field[@name='barcode']" position="after">
                     <field name="produit_fini"/>
+                    <field name="present_sur_site"/>
                     <field name="synchronise"/>
                     <field name="product_wp_id" invisible="1"/>
                 </xpath>
@@ -22,6 +23,7 @@
             <field name="arch" type="xml">
                 <xpath expr="//field[@name='barcode']" position="after">
                     <field name="produit_fini"/>
+                    <field name="present_sur_site"/>
                     <field name="synchronise"/>
                     <field name="product_wp_id" invisible="1"/>
                 </xpath>
@@ -35,7 +37,8 @@
             <field name="arch" type="xml">
                 <xpath expr="//tree" position="inside">
                     <header>
-                        <button name="synchronise_produits_list_avec_wordpress" string="Syncronise" type="object" class="btn-primary"/>
+                        <button name="synchronise_produits_list_avec_wordpress" string="Syncronise" type="object"
+                                class="btn-primary"/>
                     </header>
                 </xpath>
             </field>
@@ -49,17 +52,15 @@
             <field name="arch" type="xml">
                 <header>
                     <button name="synchronise_product"
-                            attrs="{'invisible':['|',('produit_fini','=',False),('sale_ok','=',False)]}"
-                            string="Synchronise" type="object" class="oe_highlight" />
+                            attrs="{'invisible':['|',('type','!=','product'),('present_sur_site','=',False)]}"
+                            string="Synchronise" type="object" class="oe_highlight"/>
 
                     <button name="synchronise_product_price"
                             attrs="{'invisible':['|',('synchronise','=',False),('product_wp_id','=','')]}"
-                            string="Synchronise le Prix" type="object" class="oe_highlight" />
+                            string="Synchronise le Prix" type="object" class="oe_highlight"/>
                 </header>
             </field>
         </record>
-
-
 
     </data>
 </odoo>
