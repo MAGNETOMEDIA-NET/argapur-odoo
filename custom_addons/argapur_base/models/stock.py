@@ -18,7 +18,7 @@ wcapi = API(
 class stockQuantInherited(models.Model):
     _inherit = 'stock.quant'
 
-
+    @api.model
     def create(self, vals):
         resp = super(stockQuantInherited, self).create(vals)
 
@@ -52,7 +52,7 @@ class stockQuantInherited(models.Model):
                 _logger.info(msg)
         return resp
 
-
+    @api.model
     def write(self, vals):
         resp = super(stockQuantInherited, self).write(vals)
 
