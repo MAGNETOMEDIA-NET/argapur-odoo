@@ -2,6 +2,22 @@
 <odoo>
     <data noupdate="0">
 
+        <record id="custom_view_synchronisable_products" model="ir.ui.view">
+            <field name="name">product.template.search</field>
+            <field name="model">product.template</field>
+            <field name="inherit_id" ref="product.product_template_search_view"/>
+            <field name="arch" type="xml">
+                <filter name="consumable" position="after">
+                    <separator/>
+                    <filter string="Synchronisable" name="product_can_be_synchronise"
+                            domain="[('present_sur_site','=',True),('synchronise','=',False)]"/>
+                    <separator/>
+                    <filter string="Déjà synchronisé" name="products_already_synchronise"
+                            domain="[('present_sur_site','=',True),('synchronise','=',True)]"/>
+                </filter>
+            </field>
+        </record>
+
         <record id="product_normal_form_view_add_sync" model="ir.ui.view">
             <field name="name">product.normal.form</field>
             <field name="model">product.product</field>
