@@ -80,7 +80,7 @@ class WPBaskets(Controller):
         payment_term = self._check_payment_term(baskets)
         order_line_ids = []
         order_values = {}
-        salesperson = request.env['res.users'].sudo().search([('name', '=', 'Administrator')])
+        salesperson = request.env['res.users'].sudo().search([('name', '=', 'Mitchell Admin')])
         print(salesperson)
         for element in so_lines:
             order_line_ids.append([0, 0, element])
