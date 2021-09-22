@@ -12,7 +12,7 @@
                     <filter string="Synchronisable" name="product_can_be_synchronise"
                             domain="[('present_sur_site','=',True),('synchronise','=',False)]"/>
                     <filter string="Déjà synchronisé" name="products_already_synchronise"
-                            domain="[('present_sur_site','=',True),('synchronise','=',True)]"/>
+                            domain="[('synchronise','=',True)]"/>
                 </filter>
             </field>
         </record>
@@ -71,7 +71,7 @@
                             string="Synchronise" type="object" class="oe_highlight"/>
 
                     <button name="synchronise_product_price"
-                            attrs="{'invisible':['|',('synchronise','=',False),('product_wp_id','=','')]}"
+                            attrs="{'invisible':['|',('present_sur_site','=',False),('synchronise','=',False)]}"
                             string="Synchronise le Prix" type="object" class="oe_highlight"/>
                 </header>
             </field>

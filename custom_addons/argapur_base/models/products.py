@@ -22,7 +22,7 @@ class ProducttemplateInherited(models.Model):
     produit_fini = fields.Boolean(string="Produit Fini", default=False)
     synchronise = fields.Boolean(string="Synchronisé", default=False, readonly=True)
     product_wp_id = fields.Char(string="product ID in Wordpress", default="")
-    present_sur_site = fields.Boolean(string="Présent sur site", default=False)
+    present_sur_site = fields.Boolean(string="Vendable", default=False)
 
     @api.model
     def create(self, vals):
