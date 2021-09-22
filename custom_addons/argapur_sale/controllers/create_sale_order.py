@@ -37,38 +37,38 @@ class WPBaskets(Controller):
         country = request.env['res.country'].sudo().search([('name', '=', customer['country'])])
         partner = request.env['res.partner'].sudo().search([('phone', '=', baskets['billing']['phone'])])
         if partner:
+            child_ids_invoice = request.env['res.partner'].sudo().search([('parent_id', '=', partner.id),
+                                                                          ('type', '=', 'invoice')])
+            child_ids_invoice = self.update_billing_child(customer, child_ids_invoice, country)
             if baskets['customer_id'] == 0:
                 customer = baskets.get('shipping')
                 child_ids = request.env['res.partner'].sudo().search([('parent_id', '=', partner.id),
                                                                       ('type', '=', 'delivery')])
-                child_ids_invoice = request.env['res.partner'].sudo().search([('parent_id', '=', partner.id),
-                                                                              ('type', '=', 'invoice')])
-                child_ids_invoice = self.update_billing_child(customer, child_ids_invoice, country)
                 child_ids.unlink()
                 shipping_childs = self.create_shipping_childs(baskets, partner)
                 request.env['res.partner'].sudo().create(shipping_childs)
                 partner = self.update_partner(partner, customer, country)
                 return partner
             else:
-                child_ids = request.env['res.partner'].sudo().search_count([('parent_id', '=', partner.id),
-                                                                      ('type', '=', 'delivery')])
                 child_ids_invoice = request.env['res.partner'].sudo().search([('parent_id', '=', partner.id),
+                                                                              ('type', '=', 'delivery')])
+                child_ids_count = request.env['res.partner'].sudo().search_count([('parent_id', '=', partner.id),
                                                                       ('type', '=', 'delivery')])
-                if child_ids <= 1:
+                print(child_ids_count)
+                if child_ids_count <= 1:
                     shipping_childs = self.create_shipping_childs(baskets, partner)
                     if shipping_childs:
                         request.env['res.partner'].sudo().create(shipping_childs)
-                        child_ids_invoice = self.update_billing_child(customer, child_ids_invoice, country)
                         partner = self.update_partner(partner, customer, country)
                         return partner
                 else:
+                    child_ids = request.env['res.partner'].sudo().search([('parent_id', '=', partner.id),
+                                                                          ('type', '=', 'delivery')], limit = 1)
+                    print(child_ids)
+                    child_ids.unlink()
                     shipping_childs = self.create_shipping_childs(baskets, partner)
-                    child_ids_invoice = self.update_billing_child(customer, child_ids_invoice, country)
+                    request.env['res.partner'].sudo().create(shipping_childs)
                     partner = self.update_partner(partner, customer, country)
-                    for child_id in child_ids:
-                        child_id.unlink()
-                        request.env['res.partner'].sudo().create(shipping_childs)
-                        break
                     return partner
         else:
             name = customer['first_name'] + ' ' + customer['last_name']
