@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <data noupdate="0">
+
+        <record id="sale_order_pay_method" model="ir.ui.view">
+            <field name="name">sale.order.pay.method</field>
+            <field name="model">sale.order</field>
+            <field name="inherit_id" ref="sale.view_order_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='payment_term_id']" position="before">
+                    <field name="payment_method" domain="['|',('type', '=', 'bank'),('type', '=', 'cash')]"/>
+                </xpath>
+            </field>
+        </record>
+
+    </data>
+</odoo>

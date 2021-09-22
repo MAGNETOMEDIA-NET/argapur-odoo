@@ -4,6 +4,8 @@ from odoo import models, api, fields
 class SaleOrder(models.Model):
     _inherit = 'sale.order'
 
+    payment_method = fields.Many2one('account.journal', string ='Payment method')
+
     def action_confirm(self):
         res = super(SaleOrder, self).action_confirm()
         for order in self:
