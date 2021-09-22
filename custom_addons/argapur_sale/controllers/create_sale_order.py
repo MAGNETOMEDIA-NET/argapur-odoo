@@ -229,10 +229,3 @@ class WPBaskets(Controller):
 
         return child_invoice_id
 
-
-
-
-
-
-
-
