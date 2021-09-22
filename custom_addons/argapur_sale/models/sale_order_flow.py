@@ -14,7 +14,7 @@ class SaleOrder(models.Model):
             available = self.check_availability(order)
             self.do_register_payment(invoice_id)
 
-            if available and order.payment_term_id.name == 'Carte bancaire':
+            if available and order.payment_method.name == 'Carte bancaire':
                 pickings = []
                 self.validate_pick(pickings, order)
 
