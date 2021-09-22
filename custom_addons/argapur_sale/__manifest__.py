@@ -14,6 +14,7 @@
         'argapur_base',
     ],
     'data': [
+        'views/sale_order_view.xml',
     ],
     'demo': [
     ],
