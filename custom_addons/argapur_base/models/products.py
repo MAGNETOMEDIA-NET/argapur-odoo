@@ -22,20 +22,29 @@ class ProducttemplateInherited(models.Model):
     produit_fini = fields.Boolean(string="Produit Fini", default=False)
     synchronise = fields.Boolean(string="Synchronisé", default=False, readonly=True)
     product_wp_id = fields.Char(string="product ID in Wordpress", default="")
-    present_sur_site = fields.Boolean(string="Vendable", default=False)
+    present_sur_site = fields.Boolean(string="Présent sur Site", default=False)
 
     @api.model
     def create(self, vals):
-        resp = super(ProducttemplateInherited, self).create(vals)
 
         if 'produit_fini' in vals:
             if vals['produit_fini']:
                 raise Warning('Vous ne pouvez pas créer un Produit Fini sans ajouter les informations nécessaires :\n'
                               '+ Nomenclature \n'
                               '+ Régle d \'approvisionnement.')
+        if 'present_sur_site' in vals:
+            if vals['present_sur_site']:
+                vals["sale_ok"] = True
+
+        resp = super(ProducttemplateInherited, self).create(vals)
         return resp
 
     def write(self, vals):
+        if 'present_sur_site' in vals:
+            if vals['present_sur_site']:
+                vals["sale_ok"] = True
+        elif self.present_sur_site:
+            vals["sale_ok"] = True
         resp = super(ProducttemplateInherited, self).write(vals)
         if 'produit_fini' not in vals:
             return resp
