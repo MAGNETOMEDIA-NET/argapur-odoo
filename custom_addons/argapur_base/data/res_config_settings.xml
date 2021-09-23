@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+
+        <record id="argapur_inventory_config_settings" model="res.config.settings">
+            <field name="group_stock_multi_locations" eval="True"/>
+            <field name="group_stock_adv_location" eval="True"/>
+            <field name="group_uom" eval="True"/>
+        </record>
+
+        <function model="res.config.settings" name="execute">
+            <value model="res.config.settings"
+                   search="[('id', '=', ref('argapur_inventory_config_settings'))]"/>
+        </function>
+
+        <function model="stock.warehouse" name="write">
+            <value model="stock.warehouse" eval="obj().env['stock.warehouse'].search([('id', '=', '1')], limit=1).ids"/>
+            <value eval="{
+        'delivery_steps': 'pick_ship'}"/>
+        </function>
+
+        <function model="res.config.settings" name="write">
+            <value model="res.config.settings" />
+            <value eval="{
+        'default_invoice_policy': 'order'}"/>
+        </function>
+    </data>
+
+</odoo>
