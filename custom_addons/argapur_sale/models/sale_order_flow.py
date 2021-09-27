@@ -12,9 +12,11 @@ class SaleOrder(models.Model):
             invoice_id = order._create_invoice_ecom_posted()
             self.send_invoice_mail(invoice_id)
             available = self.check_availability(order)
-            self.do_register_payment(invoice_id)
 
-            if available and order.payment_method.name == 'Carte bancaire':
+            if order.payment_method.name in ['Carte bancaire', 'Paypal', 'Virement bancaire']:
+                self.do_register_payment(invoice_id)
+
+            if available:
                 pickings = []
                 self.validate_pick(pickings, order)
 
