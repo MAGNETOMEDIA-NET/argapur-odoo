@@ -32,7 +32,7 @@ class WPBaskets(Controller):
         return res
 
     def _check_partner(self, baskets):
-        self._create_payment_terms()
+        self._create_payment_methods()
         customer = baskets.get('shipping')
         country = request.env['res.country'].sudo().search([('name', '=', customer['country'])])
         partner = request.env['res.partner'].sudo().search([('phone', '=', baskets['billing']['phone'])])
@@ -50,11 +50,8 @@ class WPBaskets(Controller):
                 partner = self.update_partner(partner, customer, country)
                 return partner
             else:
-                child_ids_invoice = request.env['res.partner'].sudo().search([('parent_id', '=', partner.id),
-                                                                              ('type', '=', 'delivery')])
                 child_ids_count = request.env['res.partner'].sudo().search_count([('parent_id', '=', partner.id),
                                                                       ('type', '=', 'delivery')])
-                print(child_ids_count)
                 if child_ids_count <= 1:
                     shipping_childs = self.create_shipping_childs(baskets, partner)
                     if shipping_childs:
@@ -63,8 +60,7 @@ class WPBaskets(Controller):
                         return partner
                 else:
                     child_ids = request.env['res.partner'].sudo().search([('parent_id', '=', partner.id),
-                                                                          ('type', '=', 'delivery')], limit = 1)
-                    print(child_ids)
+                                                                          ('type', '=', 'delivery')], limit=1)
                     child_ids.unlink()
                     shipping_childs = self.create_shipping_childs(baskets, partner)
                     request.env['res.partner'].sudo().create(shipping_childs)
@@ -104,17 +100,17 @@ class WPBaskets(Controller):
         return sale_order.name, sale_order.id
 
     def create_so_ecom(self, partner, so_lines, baskets):
-        payment_term = self._check_payment_term(baskets)
+        payment_method = self._check_payment_method(baskets)
         order_line_ids = []
         order_values = {}
-        salesperson = request.env['res.users'].sudo().search([('name', '=', 'Mitchell Admin')])
+        user = request.env['res.users'].sudo().search([('name', '=', 'Mitchell Admin')])
         for element in so_lines:
             order_line_ids.append([0, 0, element])
         order_values.update({
             'partner_id': partner and partner.id,
             'order_line': order_line_ids,
-            'payment_method': payment_term.id,
-            'user_id' : salesperson.id,
+            'payment_method': payment_method.id,
+            'user_id' : user.id,
         })
         return request.env['sale.order'].sudo().create(order_values)
 
@@ -161,12 +157,12 @@ class WPBaskets(Controller):
         }
         return billing_childs
 
-    def _create_payment_terms(self):
+    def _create_payment_methods(self):
 
-        payment_term_1 = request.env['account.journal'].sudo().search([('name', '=', 'Virement bancaire'),
+        virement_banc = request.env['account.journal'].sudo().search([('name', '=', 'Virement bancaire'),
                                                                        ('type', '=', 'bank')])
 
-        if not payment_term_1:
+        if not virement_banc:
 
             request.env['account.journal'].sudo().create(
                 {
@@ -174,21 +170,19 @@ class WPBaskets(Controller):
                     'type': 'bank',
                 })
 
-        payment_term_2 = request.env['account.journal'].sudo().search([('name', '=', 'Carte bancaire'),
+        cart_banc = request.env['account.journal'].sudo().search([('name', '=', 'Carte bancaire'),
                                                                        ('type', '=', 'bank')])
 
-        if not payment_term_2:
-
+        if not cart_banc:
             request.env['account.journal'].sudo().create(
                 {
                     'name': 'Carte bancaire',
                     'type': 'bank',
                 })
 
-        payment_term_3 = request.env['account.journal'].sudo().search([('name', '=', 'Paypal'),
+        paypal = request.env['account.journal'].sudo().search([('name', '=', 'Paypal'),
                                                                             ('type', '=', 'bank')])
-
-        if not payment_term_3:
+        if not paypal:
             request.env['account.journal'].sudo().create(
                 {
                     'name': 'Paypal',
@@ -197,17 +191,25 @@ class WPBaskets(Controller):
 
         return
 
-    def _check_payment_term(self, baskets):
+    def _check_payment_method(self, baskets):
 
         if baskets['payment_method_title'] == 'CMI':
-            payment_term = request.env['account.journal'].sudo().search(
+            payment_method = request.env['account.journal'].sudo().search(
                 [('name', '=', 'Carte bancaire')])
 
+        if baskets['payment_method_title'] == 'Virement bancaire':
+            payment_method = request.env['account.journal'].sudo().search(
+                [('name', '=', 'Virement bancaire')])
+
         if baskets['payment_method_title'] == 'Paiement à la livraison':
-            payment_term = request.env['account.journal'].sudo().search(
+            payment_method = request.env['account.journal'].sudo().search(
                 [('name', '=', 'Cash')])
 
-        return payment_term
+        if baskets['payment_method'] == 'paypal':
+            payment_method = request.env['account.journal'].sudo().search(
+                [('name', '=', 'Paypal')])
+
+        return payment_method
 
     def update_partner(self, partner, customer, country):
 
@@ -222,7 +224,7 @@ class WPBaskets(Controller):
     def update_billing_child(self, customer, child_invoice_id, country):
 
         child_invoice_id.street = customer['address_1']
-        child_invoice_id.street2 =customer['address_2']
+        child_invoice_id.street2 = customer['address_2']
         child_invoice_id.city = customer['city']
         child_invoice_id.country_id = country.id
         child_invoice_id.zip = customer['postcode']
