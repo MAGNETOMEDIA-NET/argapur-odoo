@@ -20,7 +20,7 @@ class ProducttemplateInherited(models.Model):
     _inherit = "product.template"
 
     produit_fini = fields.Boolean(string="Produit Fini", default=False)
-    synchronise = fields.Boolean(string="Synchronisé", default=False, readonly=True)
+    synchronise = fields.Boolean(string="Synchronisé", default=False)
     product_wp_id = fields.Char(string="product ID in Wordpress", default="")
     present_sur_site = fields.Boolean(string="Présent sur Site", default=False)
 
@@ -124,7 +124,7 @@ class ProducttemplateInherited(models.Model):
                 "categories": [],
                 "images": []
             }
-            if not product.synchronise:
+            if product.product_wp_id == "":
                 res = wcapi.post("products", data).json()
             else:
                 res = wcapi.put("products/" + str(product.product_wp_id), data).json()
@@ -151,7 +151,7 @@ class ProducttemplateInherited(models.Model):
             "categories": [],
             "images": []
         }
-        if not self.synchronise:
+        if self.product_wp_id =="":
             res = wcapi.post("products", data).json()
         else:
             res = wcapi.put("products/" + str(self.product_wp_id), data).json()
