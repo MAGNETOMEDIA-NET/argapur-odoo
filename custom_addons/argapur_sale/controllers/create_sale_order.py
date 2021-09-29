@@ -242,15 +242,15 @@ class WPBaskets(Controller):
 
     def add_shipping(self, order):
 
-        product_delivery_normal = request.env['product.product'].sudo().search([('name','=','cho Delivery Charges')])
+        product_delivery_normal = request.env['product.product'].sudo().search([('name','=','Argapur Delivery Charges')])
         if not product_delivery_normal:
             product_delivery_normal = request.env['product.product'].sudo().create({
-                'name': 'cho Delivery Charges',
+                'name': 'Argapur Delivery Charges',
                 'type': 'service',
                 'categ_id': request.env.ref('delivery.product_category_deliveries').id,
                 'invoice_policy': 'order',
             })
-        normal_delivery = request.env['delivery.carrier'].sudo().search([('name', '=', 'cho Delivery Charges')])
+        normal_delivery = request.env['delivery.carrier'].sudo().search([('name', '=', 'Argapur Delivery Charges')])
         if normal_delivery:
             delivery_wizard = Form(request.env['choose.delivery.carrier'].sudo().with_context({
                 'default_order_id': order.id,
@@ -262,7 +262,7 @@ class WPBaskets(Controller):
         else:
 
             normal_delivery = request.env['delivery.carrier'].sudo().create({
-                'name': 'cho Delivery Charges',
+                'name': 'Argapur Delivery Charges',
                 'product_id': product_delivery_normal.id,
                 'fixed_price': 40,
                 'delivery_type': 'fixed',
