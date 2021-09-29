@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-
 import logging
+from odoo.tests import common, Form
 from odoo.http import Controller, request, route
 _logger = logging.getLogger(__name__)
 
@@ -12,6 +12,7 @@ class WPBaskets(Controller):
         baskets = request.jsonrequest
         message = 'Basket is empty.'
         res = {"message": message, "created": False}
+        # if baskets['status'] == 'completed' or baskets['payment_method_title'] == 'Paiement à livraison':
         if baskets:
             try:
                 partner = self._check_partner(baskets)
@@ -94,8 +95,14 @@ class WPBaskets(Controller):
         for item in items:
             product = self._check_products(item)
             qty = item['quantity']
-            self.create_so_line_ecom(so_lines, product, qty)
-        sale_order = self.create_so_ecom(partner, so_lines,baskets)
+            price = item['subtotal']
+            self.create_so_line_ecom(so_lines, product, qty, price)
+        sale_order = self.create_so_ecom(partner, so_lines, baskets)
+        try:
+            if baskets['shipping_lines'][0]['method_id'] == 'flat_rate':
+                self.add_shipping(sale_order)
+        except IndexError:
+            pass
         sale_order.action_confirm()
         return sale_order.name, sale_order.id
 
@@ -103,14 +110,14 @@ class WPBaskets(Controller):
         payment_method = self._check_payment_method(baskets)
         order_line_ids = []
         order_values = {}
-        user = request.env['res.users'].sudo().search([('name', '=', 'Mitchell Admin')])
+        user = request.env['res.users'].sudo().search([('name', '=', 'Administrator')])
         for element in so_lines:
             order_line_ids.append([0, 0, element])
         order_values.update({
             'partner_id': partner and partner.id,
             'order_line': order_line_ids,
             'payment_method': payment_method.id,
-            'user_id' : user.id,
+            'user_id': user.id,
         })
         return request.env['sale.order'].sudo().create(order_values)
 
@@ -120,10 +127,12 @@ class WPBaskets(Controller):
             product = product.sudo().search([('name', '=', item['name'])], limit=1)
         return product
 
-    def create_so_line_ecom(self, so_lines, product, qty):
+    def create_so_line_ecom(self, so_lines, product, qty, price):
         so_lines_values = {
             'product_id': product and product.id or False,
             'product_uom_qty': qty,
+            'price_unit': price,
+
         }
         return so_lines.append(so_lines_values)
 
@@ -230,4 +239,43 @@ class WPBaskets(Controller):
         child_invoice_id.zip = customer['postcode']
 
         return child_invoice_id
+
+    def add_shipping(self, order):
+
+        product_delivery_normal = request.env['product.product'].sudo().search([('name','=','cho Delivery Charges')])
+        if not product_delivery_normal:
+            product_delivery_normal = request.env['product.product'].sudo().create({
+                'name': 'cho Delivery Charges',
+                'type': 'service',
+                'categ_id': request.env.ref('delivery.product_category_deliveries').id,
+                'invoice_policy': 'order',
+            })
+        normal_delivery = request.env['delivery.carrier'].sudo().search([('name', '=', 'cho Delivery Charges')])
+        if normal_delivery:
+            delivery_wizard = Form(request.env['choose.delivery.carrier'].sudo().with_context({
+                'default_order_id': order.id,
+                'default_carrier_id': normal_delivery.id
+            }))
+            choose_delivery_carrier = delivery_wizard.save()
+            choose_delivery_carrier.button_confirm()
+
+        else:
+
+            normal_delivery = request.env['delivery.carrier'].sudo().create({
+                'name': 'cho Delivery Charges',
+                'product_id': product_delivery_normal.id,
+                'fixed_price': 40,
+                'delivery_type': 'fixed',
+            })
+
+            delivery_wizard = Form(request.env['choose.delivery.carrier'].sudo().with_context({
+                'default_order_id': order.id,
+                'default_carrier_id': normal_delivery.id
+            }))
+            choose_delivery_carrier = delivery_wizard.save()
+            choose_delivery_carrier.button_confirm()
+
+
+
+
 
