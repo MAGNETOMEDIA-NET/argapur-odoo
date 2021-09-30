@@ -124,7 +124,7 @@ class ProducttemplateInherited(models.Model):
                 "categories": [],
                 "images": []
             }
-            if product.product_wp_id == "":
+            if not product.product_wp_id or product.product_wp_id== "":
                 res = wcapi.post("products", data).json()
             else:
                 res = wcapi.put("products/" + str(product.product_wp_id), data).json()
@@ -151,7 +151,7 @@ class ProducttemplateInherited(models.Model):
             "categories": [],
             "images": []
         }
-        if self.product_wp_id =="":
+        if not self.product_wp_id or self.product_wp_id =="":
             res = wcapi.post("products", data).json()
         else:
             res = wcapi.put("products/" + str(self.product_wp_id), data).json()
