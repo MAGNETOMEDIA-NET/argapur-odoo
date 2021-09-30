@@ -162,7 +162,8 @@ class ProducttemplateInherited(models.Model):
                     'synchronise': True,
                     'product_wp_id': res['id']
                 })
-            cloudinary.uploader.destroy(could_res['public_id'])
+            if attach:
+                cloudinary.uploader.destroy(could_res['public_id'])
 
 
     def synchronise_product(self):
@@ -200,8 +201,8 @@ class ProducttemplateInherited(models.Model):
             'synchronise': True,
             'product_wp_id': res['id']
         })
-
-        cloudinary.uploader.destroy(could_res['public_id'])
+        if attach:
+            cloudinary.uploader.destroy(could_res['public_id'])
 
 
     def synchronise_product_price(self):
