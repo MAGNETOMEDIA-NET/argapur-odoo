@@ -18,6 +18,7 @@
         'stock', 'purchase', 'mrp', 'l10n_ma',
     ],
     'data': [
+        "data/payment_method.xml",
         'views/product_list_view.xml',
         "data/res_config_settings.xml",
     ],

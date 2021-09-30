@@ -32,7 +32,6 @@ class WPBaskets(Controller):
         return res
 
     def _check_partner(self, baskets):
-        self._create_payment_methods()
         customer = baskets.get('shipping')
         country = request.env['res.country'].sudo().search([('name', '=', customer['country'])])
         partner = request.env['res.partner'].sudo().search([('phone', '=', baskets['billing']['phone'])])
@@ -94,7 +93,7 @@ class WPBaskets(Controller):
         for item in items:
             product = self._check_products(item)
             qty = item['quantity']
-            price = item['subtotal']
+            price = (float(item['subtotal']) + float(item['subtotal_tax'])) / float(qty)
             self.create_so_line_ecom(so_lines, product, qty, price)
         sale_order = self.create_so_ecom(partner, so_lines, baskets)
         discount = float(baskets['discount_total']) + float(baskets['discount_tax'])
@@ -109,7 +108,6 @@ class WPBaskets(Controller):
             pass
         try:
             if baskets['shipping_lines'][0]['method_title'] == 'National':
-                print('yes')
                 self.add_shipping_internal(sale_order)
         except IndexError:
             pass
@@ -176,40 +174,6 @@ class WPBaskets(Controller):
             'email': baskets['billing']['email'],
         }
         return billing_childs
-
-    def _create_payment_methods(self):
-
-        virement_banc = request.env['account.journal'].sudo().search([('name', '=', 'Virement bancaire'),
-                                                                       ('type', '=', 'bank')])
-
-        if not virement_banc:
-
-            request.env['account.journal'].sudo().create(
-                {
-                    'name': 'Virement bancaire',
-                    'type': 'bank',
-                })
-
-        cart_banc = request.env['account.journal'].sudo().search([('name', '=', 'Carte bancaire'),
-                                                                       ('type', '=', 'bank')])
-
-        if not cart_banc:
-            request.env['account.journal'].sudo().create(
-                {
-                    'name': 'Carte bancaire',
-                    'type': 'bank',
-                })
-
-        paypal = request.env['account.journal'].sudo().search([('name', '=', 'Paypal'),
-                                                                            ('type', '=', 'bank')])
-        if not paypal:
-            request.env['account.journal'].sudo().create(
-                {
-                    'name': 'Paypal',
-                    'type': 'bank',
-                })
-
-        return
 
     def _check_payment_method(self, baskets):
 
