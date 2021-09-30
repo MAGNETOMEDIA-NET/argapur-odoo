@@ -218,13 +218,6 @@ class WPBaskets(Controller):
     def add_shipping_internal(self, order):
 
         product_delivery_normal = request.env['product.product'].sudo().search([('name','=','Argapur_int Delivery Charges')])
-        if not product_delivery_normal:
-            product_delivery_normal = request.env['product.product'].sudo().create({
-                'name': 'Argapur_int Delivery Charges',
-                'type': 'service',
-                'categ_id': request.env.ref('delivery.product_category_deliveries').id,
-                'invoice_policy': 'order',
-            })
         internal_delivery = request.env['delivery.carrier'].sudo().search([('name', '=', 'Internal Delivery Charges')])
         if internal_delivery:
             delivery_wizard = Form(request.env['choose.delivery.carrier'].sudo().with_context({
@@ -253,13 +246,6 @@ class WPBaskets(Controller):
     def add_shipping_external(self, order):
 
         product_delivery_normal = request.env['product.product'].sudo().search([('name','=','Argapur_ext Delivery Charges')])
-        if not product_delivery_normal:
-            product_delivery_normal = request.env['product.product'].sudo().create({
-                'name': 'Argapur_ext Delivery Charges',
-                'type': 'service',
-                'categ_id': request.env.ref('delivery.product_category_deliveries').id,
-                'invoice_policy': 'order',
-            })
         external_delivery = request.env['delivery.carrier'].sudo().search([('name', '=', 'External Delivery Charges')])
         if external_delivery:
             delivery_wizard = Form(request.env['choose.delivery.carrier'].sudo().with_context({
@@ -272,7 +258,7 @@ class WPBaskets(Controller):
         else:
 
             external_delivery = request.env['delivery.carrier'].sudo().create({
-                'name': 'Internal Delivery Charges',
+                'name': 'External Delivery Charges',
                 'product_id': product_delivery_normal.id,
                 'fixed_price': 312,
                 'delivery_type': 'fixed',

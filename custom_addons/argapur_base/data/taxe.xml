@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="argapur_tax" model="account.tax">
+        <field name="name">20% TVA</field>
+        <field name="amount">20</field>
+        <field name="price_include" eval="True" />
+    </record>
+
+</odoo>
