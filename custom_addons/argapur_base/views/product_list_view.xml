@@ -9,7 +9,7 @@
             <field name="arch" type="xml">
                 <filter name="consumable" position="after">
                     <separator/>
-                    <filter string="Synchronisable" name="product_can_be_synchronise"
+                    <filter string="Non Synchronisé" name="product_can_be_synchronise"
                             domain="[('present_sur_site','=',True),('synchronise','=',False)]"/>
                     <filter string="Déjà synchronisé" name="products_already_synchronise"
                             domain="[('synchronise','=',True)]"/>
