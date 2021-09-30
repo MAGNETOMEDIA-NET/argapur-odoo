@@ -12,7 +12,6 @@ class WPBaskets(Controller):
         baskets = request.jsonrequest
         message = 'Basket is empty.'
         res = {"message": message, "created": False}
-        # if baskets['status'] == 'completed' or baskets['payment_method_title'] == 'Paiement à livraison':
         if baskets:
             try:
                 partner = self._check_partner(baskets)
@@ -98,9 +97,20 @@ class WPBaskets(Controller):
             price = item['subtotal']
             self.create_so_line_ecom(so_lines, product, qty, price)
         sale_order = self.create_so_ecom(partner, so_lines, baskets)
+        discount = float(baskets['discount_total']) + float(baskets['discount_tax'])
+        sale_order.write({
+            'discount_rate': discount,
+        })
+        sale_order.button_dummy()
         try:
-            if baskets['shipping_lines'][0]['method_id'] == 'flat_rate':
-                self.add_shipping(sale_order)
+            if baskets['shipping_lines'][0]['method_title'] == 'Internationale':
+                self.add_shipping_external(sale_order)
+        except IndexError:
+            pass
+        try:
+            if baskets['shipping_lines'][0]['method_title'] == 'National':
+                print('yes')
+                self.add_shipping_internal(sale_order)
         except IndexError:
             pass
         sale_order.action_confirm()
@@ -118,6 +128,7 @@ class WPBaskets(Controller):
             'order_line': order_line_ids,
             'payment_method': payment_method.id,
             'user_id': user.id,
+            'discount_type': 'amount',
         })
         return request.env['sale.order'].sudo().create(order_values)
 
@@ -240,29 +251,29 @@ class WPBaskets(Controller):
 
         return child_invoice_id
 
-    def add_shipping(self, order):
+    def add_shipping_internal(self, order):
 
-        product_delivery_normal = request.env['product.product'].sudo().search([('name','=','Argapur Delivery Charges')])
+        product_delivery_normal = request.env['product.product'].sudo().search([('name','=','Argapur_int Delivery Charges')])
         if not product_delivery_normal:
             product_delivery_normal = request.env['product.product'].sudo().create({
-                'name': 'Argapur Delivery Charges',
+                'name': 'Argapur_int Delivery Charges',
                 'type': 'service',
                 'categ_id': request.env.ref('delivery.product_category_deliveries').id,
                 'invoice_policy': 'order',
             })
-        normal_delivery = request.env['delivery.carrier'].sudo().search([('name', '=', 'Argapur Delivery Charges')])
-        if normal_delivery:
+        internal_delivery = request.env['delivery.carrier'].sudo().search([('name', '=', 'Internal Delivery Charges')])
+        if internal_delivery:
             delivery_wizard = Form(request.env['choose.delivery.carrier'].sudo().with_context({
                 'default_order_id': order.id,
-                'default_carrier_id': normal_delivery.id
+                'default_carrier_id': internal_delivery.id
             }))
             choose_delivery_carrier = delivery_wizard.save()
             choose_delivery_carrier.button_confirm()
 
         else:
 
-            normal_delivery = request.env['delivery.carrier'].sudo().create({
-                'name': 'Argapur Delivery Charges',
+            internal_delivery = request.env['delivery.carrier'].sudo().create({
+                'name': 'Internal Delivery Charges',
                 'product_id': product_delivery_normal.id,
                 'fixed_price': 40,
                 'delivery_type': 'fixed',
@@ -270,7 +281,42 @@ class WPBaskets(Controller):
 
             delivery_wizard = Form(request.env['choose.delivery.carrier'].sudo().with_context({
                 'default_order_id': order.id,
-                'default_carrier_id': normal_delivery.id
+                'default_carrier_id': internal_delivery.id
+            }))
+            choose_delivery_carrier = delivery_wizard.save()
+            choose_delivery_carrier.button_confirm()
+
+    def add_shipping_external(self, order):
+
+        product_delivery_normal = request.env['product.product'].sudo().search([('name','=','Argapur_ext Delivery Charges')])
+        if not product_delivery_normal:
+            product_delivery_normal = request.env['product.product'].sudo().create({
+                'name': 'Argapur_ext Delivery Charges',
+                'type': 'service',
+                'categ_id': request.env.ref('delivery.product_category_deliveries').id,
+                'invoice_policy': 'order',
+            })
+        external_delivery = request.env['delivery.carrier'].sudo().search([('name', '=', 'External Delivery Charges')])
+        if external_delivery:
+            delivery_wizard = Form(request.env['choose.delivery.carrier'].sudo().with_context({
+                'default_order_id': order.id,
+                'default_carrier_id': external_delivery.id
+            }))
+            choose_delivery_carrier = delivery_wizard.save()
+            choose_delivery_carrier.button_confirm()
+
+        else:
+
+            external_delivery = request.env['delivery.carrier'].sudo().create({
+                'name': 'Internal Delivery Charges',
+                'product_id': product_delivery_normal.id,
+                'fixed_price': 312,
+                'delivery_type': 'fixed',
+            })
+
+            delivery_wizard = Form(request.env['choose.delivery.carrier'].sudo().with_context({
+                'default_order_id': order.id,
+                'default_carrier_id': external_delivery.id
             }))
             choose_delivery_carrier = delivery_wizard.save()
             choose_delivery_carrier.button_confirm()
