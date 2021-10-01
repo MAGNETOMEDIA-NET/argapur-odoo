@@ -6,7 +6,7 @@ _logger = logging.getLogger(__name__)
 
 
 class WPBaskets(Controller):
-    @route(['/web/argapur/create/cmd'], type='json', auth="public", website=False)
+    @route(['/web/argapur/create/cmd'], type='json', auth="public", website=False, csrf=False)
     def create_sale_order(self, **kw):
         _logger.info("Start listener to create Sale orders from given WP datas.")
         baskets = request.jsonrequest
@@ -118,7 +118,7 @@ class WPBaskets(Controller):
         payment_method = self._check_payment_method(baskets)
         order_line_ids = []
         order_values = {}
-        user = request.env['res.users'].sudo().search([('name', '=', 'Administrator')])
+        user = request.env['res.users'].sudo().search([('active', '=', True), ('create_uid', '=', 1)], limit=1)
         for element in so_lines:
             order_line_ids.append([0, 0, element])
         order_values.update({

@@ -21,11 +21,7 @@
         'delivery_steps': 'pick_ship'}"/>
         </function>
 
-        <function model="res.config.settings" name="write">
-            <value model="res.config.settings" />
-            <value eval="{
-        'default_invoice_policy': 'order'}"/>
-        </function>
+
     </data>
 
 </odoo>
