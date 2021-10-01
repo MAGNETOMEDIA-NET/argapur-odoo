@@ -70,7 +70,7 @@ class ProducttemplateInherited(models.Model):
                           'message : il n\'est pas stockable (Storable).')
 
         # check Route if 'Manufacturing'
-        location_route = self.env['stock.location.route'].search([('name', '=', 'Manufacture')], limit=1)
+        location_route = self.env['stock.location.route'].search([('name', 'in', ['Produire','Manufacture'])], limit=1)
         if location_route not in self.route_ids:
             raise Warning('Ce Produit ne peut pas être un Produit Fini : \n'
                           'message : il n\'a pas de voie de fabrication (Manufacturing route).')
@@ -162,7 +162,8 @@ class ProducttemplateInherited(models.Model):
                     'synchronise': True,
                     'product_wp_id': res['id']
                 })
-            cloudinary.uploader.destroy(could_res['public_id'])
+            if attach:
+                cloudinary.uploader.destroy(could_res['public_id'])
 
 
     def synchronise_product(self):
@@ -200,8 +201,8 @@ class ProducttemplateInherited(models.Model):
             'synchronise': True,
             'product_wp_id': res['id']
         })
-
-        cloudinary.uploader.destroy(could_res['public_id'])
+        if attach:
+            cloudinary.uploader.destroy(could_res['public_id'])
 
 
     def synchronise_product_price(self):
