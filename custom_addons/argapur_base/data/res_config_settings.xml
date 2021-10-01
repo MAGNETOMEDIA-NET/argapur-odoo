@@ -21,6 +21,15 @@
         'delivery_steps': 'pick_ship'}"/>
         </function>
 
+        <record id="mymodule_lang_pl" model="ir.model.data">
+            <field name="name">lang_pl</field>
+            <field name="noupdate">TRUE</field>
+            <field name="module">argapur_base</field>
+            <field name="model">res.lang</field>
+            <field name="res_id" model="res.lang" search="[('code', '=', 'fr_FR')]"/>
+       </record>
+
+
 
     </data>
 
