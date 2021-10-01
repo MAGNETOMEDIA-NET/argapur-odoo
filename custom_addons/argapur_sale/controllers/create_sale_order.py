@@ -6,7 +6,7 @@ _logger = logging.getLogger(__name__)
 
 
 class WPBaskets(Controller):
-    @route(['/web/argapur/create/cmd'], type='json', auth="public", website=False)
+    @route(['/web/argapur/create/cmd'], type='json', auth="public", website=False, csrf=False)
     def create_sale_order(self, **kw):
         _logger.info("Start listener to create Sale orders from given WP datas.")
         baskets = request.jsonrequest
