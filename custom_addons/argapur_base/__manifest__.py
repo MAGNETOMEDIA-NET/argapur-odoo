@@ -28,4 +28,6 @@
     'installable': True,
     'application': False,
     'auto_install': False,
+    'pre_init_hook': 'test_pre_init_hook',
+
 }

@@ -177,6 +177,7 @@ class WPBaskets(Controller):
 
     def _check_payment_method(self, baskets):
 
+        payment_method = None
         if baskets['payment_method_title'] == 'CMI':
             payment_method = request.env['account.journal'].sudo().search(
                 [('name', '=', 'Carte bancaire')])
