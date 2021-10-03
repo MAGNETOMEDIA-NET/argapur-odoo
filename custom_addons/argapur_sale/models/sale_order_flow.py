@@ -4,7 +4,7 @@ from odoo import models, api, fields
 class SaleOrder(models.Model):
     _inherit = 'sale.order'
 
-    payment_method = fields.Many2one('account.journal', string ='Payment method')
+    payment_method = fields.Many2one('account.journal', string ='Méthode de paiement')
 
     def action_confirm(self):
         res = super(SaleOrder, self).action_confirm()
@@ -74,6 +74,7 @@ class SaleOrder(models.Model):
         return res1.with_context(button_validate_picking_ids=res1.pick_ids.ids).process()
 
     def check_availability(self, order):
+        check = False
         for o_line in order.order_line:
             product = o_line.product_id
             x = o_line.product_uom_qty

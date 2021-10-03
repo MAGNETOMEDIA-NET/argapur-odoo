@@ -18,11 +18,16 @@
         'stock', 'purchase', 'mrp', 'l10n_ma',
     ],
     'data': [
-        'views/product_list_view.xml',
         "data/res_config_settings.xml",
+        "data/delivery.xml",
+        "data/payment_method.xml",
+        "data/taxe.xml",
+        'views/product_list_view.xml',
     ],
     'demo': [],
     'installable': True,
     'application': False,
     'auto_install': False,
+    'pre_init_hook': 'test_pre_init_hook',
+
 }
