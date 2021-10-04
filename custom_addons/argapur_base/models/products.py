@@ -2,6 +2,13 @@ from odoo.exceptions import Warning
 import json
 from woocommerce import API
 from odoo import api, fields, models, tools, _, SUPERUSER_ID
+
+
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
+
+
 import logging
 
 _logger = logging.getLogger(__name__)
@@ -15,12 +22,18 @@ wcapi = API(
     query_string_auth=True
 )
 
+cloudinary.config(
+  cloud_name="dkduttisy",
+  api_key="893527922522328",
+  api_secret="MDJ9mk3PAFFzONGjzlN1CRuRDSA",
+  secure=True
+)
 
 class ProducttemplateInherited(models.Model):
     _inherit = "product.template"
 
     produit_fini = fields.Boolean(string="Produit Fini", default=False)
-    synchronise = fields.Boolean(string="Synchronisé", default=False, readonly=True)
+    synchronise = fields.Boolean(string="Synchronisé", default=False)
     product_wp_id = fields.Char(string="product ID in Wordpress", default="")
     present_sur_site = fields.Boolean(string="Présent sur Site", default=False)
 
@@ -57,7 +70,7 @@ class ProducttemplateInherited(models.Model):
                           'message : il n\'est pas stockable (Storable).')
 
         # check Route if 'Manufacturing'
-        location_route = self.env['stock.location.route'].search([('name', 'in', ['Produire', 'Manufacture'])], limit=1)
+        location_route = self.env['stock.location.route'].search([('name', 'in', ['Produire','Manufacture'])], limit=1)
         if location_route not in self.route_ids:
             raise Warning('Ce Produit ne peut pas être un Produit Fini : \n'
                           'message : il n\'a pas de voie de fabrication (Manufacturing route).')
@@ -110,6 +123,18 @@ class ProducttemplateInherited(models.Model):
                 products_list.append(product)
 
         for product in products_list:
+            attach = self.env['ir.attachment'].search(
+                [('res_model', '=', 'product.template'), ('res_id', '=', product.id), ('res_field', '=', "image_1920")])
+            images = []
+            if attach:
+                image_path = attach._full_path(attach.store_fname)
+                could_res = cloudinary.uploader.upload(image_path)
+                if 'secure_url' not in could_res:
+                    raise Warning('Problem pour importer image a cloudinary.')
+                images = [{
+                    'src': could_res['secure_url']
+                }]
+
             product_id = self.env['product.product'].search([('product_tmpl_id', '=', product.id)]).id
             stock = self.env['stock.quant'].search(
                 [('product_id', '=', product_id), ('location_id.name', '=', 'Stock')])
@@ -122,9 +147,9 @@ class ProducttemplateInherited(models.Model):
                 "manage_stock": True,
                 "stock_quantity": product_qty_available,
                 "categories": [],
-                "images": []
+                "images": images
             }
-            if not product.synchronise:
+            if not product.product_wp_id or product.product_wp_id== "":
                 res = wcapi.post("products", data).json()
             else:
                 res = wcapi.put("products/" + str(product.product_wp_id), data).json()
@@ -137,10 +162,25 @@ class ProducttemplateInherited(models.Model):
                     'synchronise': True,
                     'product_wp_id': res['id']
                 })
+            if attach:
+                cloudinary.uploader.destroy(could_res['public_id'])
 
 
     def synchronise_product(self):
         product_qty_available = self.get_product_qty_available()
+
+        attach = self.env['ir.attachment'].search(
+            [('res_model', '=', 'product.template'), ('res_id', '=', self.id), ('res_field', '=', "image_1920")])
+        images = []
+        if attach:
+            image_path = attach._full_path(attach.store_fname)
+            could_res = cloudinary.uploader.upload(image_path)
+            if 'secure_url' not in could_res :
+                raise Warning('Problem pour importer image a cloudinary.')
+            images =[ {
+                'src' : could_res['secure_url']
+            }]
+
         data = {
             "name": self.name,
             "type": "simple",
@@ -149,9 +189,9 @@ class ProducttemplateInherited(models.Model):
             "manage_stock": True,
             "stock_quantity": product_qty_available,
             "categories": [],
-            "images": []
+            "images": images
         }
-        if not self.synchronise:
+        if not self.product_wp_id or self.product_wp_id =="":
             res = wcapi.post("products", data).json()
         else:
             res = wcapi.put("products/" + str(self.product_wp_id), data).json()
@@ -161,6 +201,8 @@ class ProducttemplateInherited(models.Model):
             'synchronise': True,
             'product_wp_id': res['id']
         })
+        if attach:
+            cloudinary.uploader.destroy(could_res['public_id'])
 
 
     def synchronise_product_price(self):
