@@ -15,7 +15,7 @@
     'images': [],
     'depends': [
         'sale_management',
-        'stock', 'purchase', 'mrp', 'l10n_ma',
+        'stock', 'purchase', 'mrp', 'l10n_ma','sale_discount_total',
     ],
     'data': [
         "data/res_config_settings.xml",
