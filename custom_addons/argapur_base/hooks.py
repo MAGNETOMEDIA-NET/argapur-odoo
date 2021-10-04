@@ -10,3 +10,5 @@ def test_pre_init_hook(cr):
         user.sudo().write({
             'lang': 'fr_FR',
         })
+    installer = env['base.language.install'].create({'lang': 'fr_FR'})
+    installer.lang_install()

@@ -8,6 +8,7 @@
             <field name="group_uom" eval="True"/>
             <field name="module_delivery" eval="True"/>
             <field name="stock_move_sms_validation" eval="False"/>
+            <field name="default_invoice_policy">order</field>
         </record>
 
         <function model="res.config.settings" name="execute">
@@ -20,16 +21,6 @@
             <value eval="{
         'delivery_steps': 'pick_ship'}"/>
         </function>
-
-        <record id="mymodule_lang_pl" model="ir.model.data">
-            <field name="name">lang_pl</field>
-            <field name="noupdate">TRUE</field>
-            <field name="module">argapur_base</field>
-            <field name="model">res.lang</field>
-            <field name="res_id" model="res.lang" search="[('code', '=', 'fr_FR')]"/>
-       </record>
-
-
 
     </data>
 
