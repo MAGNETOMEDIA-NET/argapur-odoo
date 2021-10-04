@@ -3,10 +3,11 @@ import json
 from woocommerce import API
 from odoo import api, fields, models, tools, _, SUPERUSER_ID
 
+import requests
+import base64
+import shutil
+import os
 
-import cloudinary
-import cloudinary.uploader
-import cloudinary.api
 
 
 import logging
@@ -22,12 +23,11 @@ wcapi = API(
     query_string_auth=True
 )
 
-cloudinary.config(
-  cloud_name="dkduttisy",
-  api_key="893527922522328",
-  api_secret="MDJ9mk3PAFFzONGjzlN1CRuRDSA",
-  secure=True
-)
+##### (Application Password) Api params
+app_pass_endpoint = "https://argapur.com/en/wp-json/wp/v2"
+app_pass_user = 'mehdi'
+app_pass_password = 'yLaW Ptsu c7pY 0hlt RnFG bDAc'
+
 
 class ProducttemplateInherited(models.Model):
     _inherit = "product.template"
@@ -66,34 +66,33 @@ class ProducttemplateInherited(models.Model):
         product = self.env['product.product'].search([('product_tmpl_id', '=', self.id)])
         # check if stockable
         if self.type != 'product':
-            raise Warning('Ce Produit ne peut pas être un Produit Fini:\n'
-                          'message : il n\'est pas stockable (Storable).')
+            raise Warning('Ce Produit ne peut pas être un Produit Fini.\n'
+                          'Message : il n\'est pas stockable (Storable).')
 
         # check Route if 'Manufacturing'
         location_route = self.env['stock.location.route'].search([('name', 'in', ['Produire','Manufacture'])], limit=1)
         if location_route not in self.route_ids:
-            raise Warning('Ce Produit ne peut pas être un Produit Fini : \n'
-                          'message : il n\'a pas de voie de fabrication (Manufacturing route).')
+            raise Warning('Ce Produit ne peut pas être un Produit Fini.\n'
+                          'Message : il n\'a pas de voie de fabrication (Manufacturing route).')
 
         # check Nomenclature
         mrp_bom = self.env['mrp.bom'].search([('product_tmpl_id', '=', self.id)])
         if not mrp_bom:
-            raise Warning('Ce Produit ne peut pas être un Produit Fini :\n'
-                          'message : il n\'a pas Nomenclature (Bill of Materials).')
+            raise Warning('Ce Produit ne peut pas être un Produit Fini.\n'
+                          'Message : il n\'a pas Nomenclature (Bill of Materials).')
 
         # check regles d'approvisionnement
         orderpoint = self.env['stock.warehouse.orderpoint'].search([('product_id', '=', product.id)])
         if not orderpoint:
-            raise Warning('Ce Produit ne peut pas être un Produit Fini: \n'
-                          'message : il n\'a pas des regles d\'approvisionnement (Recordering Rules).')
+            raise Warning('Ce Produit ne peut pas être un Produit Fini\n'
+                          'Message : il n\'a pas des regles d\'approvisionnement (Recordering Rules).')
 
         return resp
-
 
     def show_error_message(self, res):
         msg = 'WordPress API :'
         msg += 'Code : ' + str(res['code']) + '\n'
-        msg += 'message : ' + str(res['message']) + '\n'
+        msg += 'Message : ' + str(res['message']) + '\n'
         res_data = res['data']
         if 'params' in res_data:
             for key, value in res_data['params'].items():
@@ -102,7 +101,6 @@ class ProducttemplateInherited(models.Model):
             for key, value in res_data.items():
                 msg += str(key) + ' : ' + str(value) + '\n'
         raise Warning(msg)
-
 
     def get_product_qty_available(self):
         product_id = self.env['product.product'].search([('product_tmpl_id', '=', self.id)]).id
@@ -118,22 +116,40 @@ class ProducttemplateInherited(models.Model):
         products_list = []
         for product in products_template_ids:
             if not product.present_sur_site:
-                raise Warning('Le Produit \' ' + product.name + ' \' est pas present sur site.')
+                raise Warning('Le Produit \' ' + product.name + ' \' n\'est pas present sur site.')
             else:
                 products_list.append(product)
 
         for product in products_list:
             attach = self.env['ir.attachment'].search(
                 [('res_model', '=', 'product.template'), ('res_id', '=', product.id), ('res_field', '=', "image_1920")])
+
             images = []
             if attach:
-                image_path = attach._full_path(attach.store_fname)
-                could_res = cloudinary.uploader.upload(image_path)
-                if 'secure_url' not in could_res:
-                    raise Warning('Problem pour importer image a cloudinary.')
-                images = [{
-                    'src': could_res['secure_url']
-                }]
+                image_path = r'' + str(attach._full_path(attach.store_fname))
+                image_dst = r'' + str(image_path) + '.png'
+                shutil.copyfile(image_path, image_dst)
+                creds = app_pass_user + ':' + app_pass_password
+                token = base64.b64encode(creds.encode())
+                header = {'Authorization': 'Basic ' + token.decode('utf-8')}
+                media = {
+                    'file': open(image_dst, 'rb'),
+                }
+                response = requests.request(
+                    "POST", app_pass_endpoint + "/media", headers=header,
+                    files=media,
+                    auth=(app_pass_user, app_pass_password)
+                )
+                json_res = response.json()
+                if 'code' in json_res:
+                    raise Warning("Erreur lors du téléchargement de l'image sur wordpress.\n"
+                                  "Message : " + str(json_res['message']))
+                images = [
+                    {
+                        'id': json_res['id']
+                    }
+                ]
+                os.remove(image_dst)
 
             product_id = self.env['product.product'].search([('product_tmpl_id', '=', product.id)]).id
             stock = self.env['stock.quant'].search(
@@ -156,14 +172,12 @@ class ProducttemplateInherited(models.Model):
             if 'code' in res:
                 self.show_error_message(res)
             else:
-                message = 'Le produit ' + product.name + 'est synchronise avec WordPress'
+                message = 'Le produit ' + product.name + 'est synchronise avec WordPress.'
                 _logger.info(message)
                 product.write({
                     'synchronise': True,
                     'product_wp_id': res['id']
                 })
-            if attach:
-                cloudinary.uploader.destroy(could_res['public_id'])
 
 
     def synchronise_product(self):
@@ -173,13 +187,30 @@ class ProducttemplateInherited(models.Model):
             [('res_model', '=', 'product.template'), ('res_id', '=', self.id), ('res_field', '=', "image_1920")])
         images = []
         if attach:
-            image_path = attach._full_path(attach.store_fname)
-            could_res = cloudinary.uploader.upload(image_path)
-            if 'secure_url' not in could_res :
-                raise Warning('Problem pour importer image a cloudinary.')
-            images =[ {
-                'src' : could_res['secure_url']
-            }]
+            image_path = r''+str(attach._full_path(attach.store_fname))
+            image_dst = r''+str(image_path)+'.png'
+            shutil.copyfile(image_path, image_dst)
+            creds = app_pass_user + ':' + app_pass_password
+            token = base64.b64encode(creds.encode())
+            header = {'Authorization': 'Basic ' + token.decode('utf-8')}
+            media = {
+                'file': open(image_dst, 'rb'),
+            }
+            response = requests.request(
+                "POST", app_pass_endpoint + "/media", headers=header,
+                files=media,
+                auth=(app_pass_user, app_pass_password)
+            )
+            json_res = response.json()
+            if 'code' in json_res:
+                raise Warning("Erreur lors du téléchargement de l'image sur wordpress.\n"
+                              "Message : "+str(json_res['message']))
+            images = [
+                {
+                    'id' : json_res['id']
+                }
+            ]
+            os.remove(image_dst)
 
         data = {
             "name": self.name,
@@ -201,9 +232,6 @@ class ProducttemplateInherited(models.Model):
             'synchronise': True,
             'product_wp_id': res['id']
         })
-        if attach:
-            cloudinary.uploader.destroy(could_res['public_id'])
-
 
     def synchronise_product_price(self):
         product_wp_id = self.product_wp_id
