@@ -74,13 +74,15 @@ class SaleOrder(models.Model):
         return res1.with_context(button_validate_picking_ids=res1.pick_ids.ids).process()
 
     def check_availability(self, order):
-        check = False
+        check = True
         for o_line in order.order_line:
             product = o_line.product_id
-            x = o_line.product_uom_qty
-            rec = self.env['stock.quant'].search([('product_id', '=', product.id), ('location_id.name', '=', 'Stock')])
-            y = rec.available_quantity
-            check = (y >= x)
+            product_type = self.env['product.template'].search([('id', '=', product.id)])
+            if product_type.type in ['product', 'consu']:
+                x = o_line.product_uom_qty
+                rec = self.env['stock.quant'].search([('product_id', '=', product.id), ('location_id.name', '=', 'Stock')])
+                y = rec.available_quantity
+                check = (y >= x)
             if not check:
                 break
         return check
