@@ -10,6 +10,10 @@
                 <xpath expr="//field[@name='payment_term_id']" position="before">
                     <field name="payment_method" domain="['|',('type', '=', 'bank'),('type', '=', 'cash')]"/>
                 </xpath>
+                <xpath expr="//field[@name='payment_term_id']" position="after">
+                    <field name="wp_id" readonly="1"/>
+                </xpath>
+
             </field>
         </record>
 
