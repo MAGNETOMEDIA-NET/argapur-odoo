@@ -13,27 +13,29 @@ class WPBaskets(Controller):
         message = 'Basket is empty.'
         res = {"message": message, "created": False}
         if baskets:
-            try:
-                partner = self._check_partner(baskets)
-                if not partner:
-                    message = 'The customer does not exist. Cannot create an order without a customer'
-                    res = {"message": message, "created": False}
-                if partner:
-                    if baskets.get('line_items'):
-                        order_name, order_id = self._check_items(partner, baskets)
-                        _logger.info("END of listener.")
-                        message = 'Panier importé avec succès dans Odoo : %s' % order_name
-                        res.update({"created": True, "message": message, "id": order_id})
-            except Exception as e:
-                res.update({"created": False, "message": e})
-                return res
+            sale_order = request.env['sale.order'].sudo().search([('wp_id', '=', baskets['id'])])
+            if not sale_order and baskets['date_paid']:
+                try:
+                    partner = self._check_partner(baskets)
+                    if not partner:
+                        message = 'The customer does not exist. Cannot create an order without a customer'
+                        res = {"message": message, "created": False}
+                    if partner:
+                        if baskets.get('line_items'):
+                            order_name, order_id = self._check_items(partner, baskets)
+                            _logger.info("END of listener.")
+                            message = 'Panier importé avec succès dans Odoo : %s' % order_name
+                            res.update({"created": True, "message": message, "id": order_id})
+                except Exception as e:
+                    res.update({"created": False, "message": e})
+                    return res
         else:
             _logger.info(message)
         return res
 
     def _check_partner(self, baskets):
         customer = baskets.get('shipping')
-        country = request.env['res.country'].sudo().search([('name', '=', customer['country'])])
+        country = request.env['res.country'].sudo().search([('code', '=', customer['country'])])
         partner = request.env['res.partner'].sudo().search([('phone', '=', baskets['billing']['phone'])])
         if partner:
             child_ids_invoice = request.env['res.partner'].sudo().search([('parent_id', '=', partner.id),
@@ -67,7 +69,7 @@ class WPBaskets(Controller):
                     return partner
         else:
             name = customer['first_name'] + ' ' + customer['last_name']
-            country = request.env['res.country'].sudo().search([('name', '=', customer['country'])])
+            country = request.env['res.country'].sudo().search([('code', '=', customer['country'])])
             partner_values = {
                 'type': 'delivery',
                 'name': name,
@@ -124,6 +126,7 @@ class WPBaskets(Controller):
         order_values.update({
             'partner_id': partner and partner.id,
             'order_line': order_line_ids,
+            'wp_id': baskets['id'],
             'payment_method': payment_method.id,
             'user_id': user.id,
             'discount_type': 'amount',
