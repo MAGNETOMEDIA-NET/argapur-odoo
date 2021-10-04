@@ -13,8 +13,7 @@ class WPBaskets(Controller):
         message = 'Basket is empty.'
         res = {"message": message, "created": False}
         if baskets:
-            sale_order = request.env['sale.order'].sudo().search([('wp_id', '=', baskets['id'])])
-            if not sale_order and baskets['date_paid']:
+            if baskets['status'] in ["processing", "on-hold"]:
                 try:
                     partner = self._check_partner(baskets)
                     if not partner:
