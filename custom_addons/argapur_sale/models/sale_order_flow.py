@@ -14,7 +14,7 @@ class SaleOrder(models.Model):
             self.send_invoice_mail(invoice_id)
             available = self.check_availability(order)
 
-            if order.payment_method.name in ['Carte bancaire', 'Paypal', 'Virement bancaire']:
+            if order.payment_method.name in ['Carte bancaire', 'Paypal']:
                 self.do_register_payment(invoice_id)
 
             if available:
