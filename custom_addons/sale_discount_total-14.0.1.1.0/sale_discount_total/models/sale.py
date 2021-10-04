@@ -57,7 +57,7 @@ class SaleOrder(models.Model):
     amount_total = fields.Monetary(string='Total', store=True, readonly=True, compute='_amount_all',
                                    tracking=True)
     amount_discount = fields.Monetary(string='Discount', store=True, readonly=True, compute='_amount_all',
-                                      digits="Product Unit of Measure", default=0.0, tracking=True)
+                                      default=0.0, tracking=True)
 
     @api.onchange('discount_type', 'discount_rate', 'order_line')
     def supply_rate(self):
