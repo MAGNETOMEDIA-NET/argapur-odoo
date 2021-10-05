@@ -14,16 +14,13 @@ class WPBaskets(Controller):
         res = {"message": message, "created": False}
         if baskets:
             if baskets['status'] in ["processing", "on-hold"]:
-                print('yes 1')
                 try:
                     partner = self._check_partner(baskets)
-                    print('yes 2')
                     if not partner:
                         message = 'The customer does not exist. Cannot create an order without a customer'
                         res = {"message": message, "created": False}
                     if partner:
                         if baskets.get('line_items'):
-                            print('yes 3')
                             order_name, order_id = self._check_items(partner, baskets)
 
                             _logger.info("END of listener.")
@@ -96,14 +93,10 @@ class WPBaskets(Controller):
         items = baskets.get('line_items')
         so_lines = []
         for item in items:
-            print('yes 4')
             product = self._check_products(item)
-            print('yes 5')
-            print(product)
             qty = item['quantity']
             price = (float(item['subtotal']) + float(item['subtotal_tax'])) / float(qty)
             self.create_so_line_ecom(so_lines, product, qty, price)
-            print('yes 6')
         sale_order = self.create_so_ecom(partner, so_lines, baskets)
         discount = float(baskets['discount_total']) + float(baskets['discount_tax'])
         sale_order.write({
