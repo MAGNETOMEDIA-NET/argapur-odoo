@@ -23,6 +23,7 @@
         "data/payment_method.xml",
         "data/taxe.xml",
         'views/product_list_view.xml',
+        'views/argapur_settings.xml',
     ],
     'demo': [],
     'installable': True,
