@@ -134,10 +134,9 @@ class WPBaskets(Controller):
 
     def _check_products(self, item):
         product = request.env['product.product']
-        if item.get('name'):
-            if item.get('name'):
-                product = product.sudo().search([('name', '=', item['name'])], limit=1)
-            return product
+        if item.get('product_id'):
+            product = product.sudo().search([('product_wp_id', '=', item['product_id'])], limit=1)
+        return product
 
     def create_so_line_ecom(self, so_lines, product, qty, price):
         so_lines_values = {
