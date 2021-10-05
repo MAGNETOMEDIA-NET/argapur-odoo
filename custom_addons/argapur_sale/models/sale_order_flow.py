@@ -4,7 +4,8 @@ from odoo import models, api, fields
 class SaleOrder(models.Model):
     _inherit = 'sale.order'
 
-    payment_method = fields.Many2one('account.journal', string ='Méthode de paiement')
+    payment_method = fields.Many2one('account.journal', string='Méthode de paiement')
+    wp_id = fields.Char('Identifiant', readonly=True)
 
     def action_confirm(self):
         res = super(SaleOrder, self).action_confirm()
@@ -13,7 +14,7 @@ class SaleOrder(models.Model):
             self.send_invoice_mail(invoice_id)
             available = self.check_availability(order)
 
-            if order.payment_method.name in ['Carte bancaire', 'Paypal', 'Virement bancaire']:
+            if order.payment_method.name in ['Carte bancaire', 'Paypal']:
                 self.do_register_payment(invoice_id)
 
             if available:
