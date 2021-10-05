@@ -185,10 +185,6 @@ class WPBaskets(Controller):
             payment_method = request.env['account.journal'].sudo().search(
                 [('name', '=', 'Carte bancaire')])
 
-        if baskets['payment_method_title'] == 'Virement bancaire':
-            payment_method = request.env['account.journal'].sudo().search(
-                [('name', '=', 'Virement bancaire')])
-
         if baskets['payment_method_title'] == 'Paiement à la livraison':
             payment_method = request.env['account.journal'].sudo().search(
                 [('name', '=', 'Cash')])
