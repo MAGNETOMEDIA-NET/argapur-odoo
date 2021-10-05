@@ -22,6 +22,7 @@ class WPBaskets(Controller):
                     if partner:
                         if baskets.get('line_items'):
                             order_name, order_id = self._check_items(partner, baskets)
+
                             _logger.info("END of listener.")
                             message = 'Panier importé avec succès dans Odoo : %s' % order_name
                             res.update({"created": True, "message": message, "id": order_id})
@@ -180,11 +181,11 @@ class WPBaskets(Controller):
     def _check_payment_method(self, baskets):
 
         payment_method = None
-        if baskets['payment_method_title'] == 'CMI':
+        if baskets['payment_method_title'] == 'cmi':
             payment_method = request.env['account.journal'].sudo().search(
                 [('name', '=', 'Carte bancaire')])
 
-        if baskets['payment_method_title'] == 'Paiement à la livraison':
+        if baskets['payment_method'] == 'cod':
             payment_method = request.env['account.journal'].sudo().search(
                 [('name', '=', 'Cash')])
 
