@@ -206,6 +206,7 @@ class ProducttemplateInherited(models.Model):
             [('res_model', '=', 'product.template'), ('res_id', '=', self.id), ('res_field', '=', "image_1920")])
         images = []
         image_id = False
+        old_image_id = False
         if attach:
             image_path = r''+str(attach._full_path(attach.store_fname))
             image_dst = r''+str(image_path)+'.png'
@@ -256,7 +257,6 @@ class ProducttemplateInherited(models.Model):
                 self.check_response_code(res)
             res = res.json()
         else:
-            old_image_id = False
             if image_id:
                 res = wcapi.get("products/"+str(self.product_wp_id))
                 if res.headers.get('content-type').split(';')[0] != 'application/json':
@@ -356,6 +356,7 @@ class ProducttemplateInherited(models.Model):
 
             images = []
             image_id = False
+            old_image_id = False
             if attach:
                 image_path = r'' + str(attach._full_path(attach.store_fname))
                 image_dst = r'' + str(image_path) + '.png'
@@ -409,7 +410,6 @@ class ProducttemplateInherited(models.Model):
                     self.check_response_code(self, res)
                 res = res.json()
             else:
-                old_image_id = False
                 if image_id:
                     res = wcapi.get("products/"+str(product.product_wp_id))
                     if res.headers.get('content-type').split(';')[0] != 'application/json':
