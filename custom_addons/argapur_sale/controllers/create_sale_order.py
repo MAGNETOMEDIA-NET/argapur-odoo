@@ -12,23 +12,27 @@ class WPBaskets(Controller):
         baskets = request.jsonrequest
         message = 'Basket is empty.'
         res = {"message": message, "created": False}
+        sale_order = request.env['sale.order'].sudo().search([('wp_id', '=', baskets['id'])])
         if baskets:
-            if baskets['status'] in ["processing", "on-hold"]:
-                try:
-                    partner = self._check_partner(baskets)
-                    if not partner:
-                        message = 'The customer does not exist. Cannot create an order without a customer'
-                        res = {"message": message, "created": False}
-                    if partner:
-                        if baskets.get('line_items'):
-                            order_name, order_id = self._check_items(partner, baskets)
+            if not sale_order:
+                if baskets['status'] in ["processing"]:
+                    try:
+                        partner = self._check_partner(baskets)
+                        if not partner:
+                            message = 'The customer does not exist. Cannot create an order without a customer'
+                            res = {"message": message, "created": False}
+                        if partner:
+                            if baskets.get('line_items'):
+                                order_name, order_id = self._check_items(partner, baskets)
 
-                            _logger.info("END of listener.")
-                            message = 'Panier importé avec succès dans Odoo : %s' % order_name
-                            res.update({"created": True, "message": message, "id": order_id})
-                except Exception as e:
-                    res.update({"created": False, "message": e})
-                    return res
+                                _logger.info("END of listener.")
+                                message = 'Panier importé avec succès dans Odoo : %s' % order_name
+                                res.update({"created": True, "message": message, "id": order_id})
+                    except Exception as e:
+                        res.update({"created": False, "message": e})
+                        return res
+            else:
+                _logger.info(message)
         else:
             _logger.info(message)
         return res
@@ -181,7 +185,7 @@ class WPBaskets(Controller):
     def _check_payment_method(self, baskets):
 
         payment_method = None
-        if baskets['payment_method_title'] == 'cmi':
+        if baskets['payment_method'] == 'cmi':
             payment_method = request.env['account.journal'].sudo().search(
                 [('name', '=', 'Carte bancaire')])
 
