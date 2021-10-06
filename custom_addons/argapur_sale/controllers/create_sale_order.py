@@ -80,6 +80,7 @@ class WPBaskets(Controller):
                 'phone': baskets['billing']['phone'],
                 'email': baskets['billing']['email'],
                 'country_id': country.id,
+                'lang': 'fr_FR',
             }
             partner = request.env['res.partner'].sudo().create(partner_values)
             shipping_childs = self.create_shipping_childs(baskets, partner)
