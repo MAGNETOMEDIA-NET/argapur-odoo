@@ -15,14 +15,20 @@
     'images': [],
     'depends': [
         'sale_management',
-        'stock', 'purchase', 'mrp', 'l10n_ma',
+        'stock', 'purchase', 'mrp', 'l10n_ma','sale_discount_total',
     ],
     'data': [
-        'views/product_list_view.xml',
         "data/res_config_settings.xml",
+        "data/delivery.xml",
+        "data/payment_method.xml",
+        "data/taxe.xml",
+        'views/product_list_view.xml',
+        'views/argapur_settings.xml',
     ],
     'demo': [],
     'installable': True,
     'application': False,
     'auto_install': False,
+    'pre_init_hook': 'test_pre_init_hook',
+
 }

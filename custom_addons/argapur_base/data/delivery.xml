@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="int_delivery_product" model="product.product">
+        <field name="name">Argapur_int Delivery Charges</field>
+        <field name="type">service</field>
+        <field name="invoice_policy">order</field>
+    </record>
+
+     <record id="ext_delivery_product" model="product.product">
+        <field name="name">Argapur_ext Delivery Charges</field>
+        <field name="type">service</field>
+        <field name="invoice_policy">order</field>
+    </record>
+
+</odoo>

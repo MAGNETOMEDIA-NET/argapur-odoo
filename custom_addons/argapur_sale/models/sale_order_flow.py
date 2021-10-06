@@ -4,7 +4,8 @@ from odoo import models, api, fields
 class SaleOrder(models.Model):
     _inherit = 'sale.order'
 
-    payment_method = fields.Many2one('account.journal', string ='Payment method')
+    payment_method = fields.Many2one('account.journal', string='Méthode de paiement')
+    wp_id = fields.Char('Identifiant', readonly=True)
 
     def action_confirm(self):
         res = super(SaleOrder, self).action_confirm()
@@ -12,9 +13,11 @@ class SaleOrder(models.Model):
             invoice_id = order._create_invoice_ecom_posted()
             self.send_invoice_mail(invoice_id)
             available = self.check_availability(order)
-            self.do_register_payment(invoice_id)
 
-            if available and order.payment_method.name == 'Carte bancaire':
+            if order.payment_method.name in ['Carte bancaire', 'Paypal']:
+                self.do_register_payment(invoice_id)
+
+            if available:
                 pickings = []
                 self.validate_pick(pickings, order)
 
@@ -72,12 +75,15 @@ class SaleOrder(models.Model):
         return res1.with_context(button_validate_picking_ids=res1.pick_ids.ids).process()
 
     def check_availability(self, order):
+        check = True
         for o_line in order.order_line:
             product = o_line.product_id
-            x = o_line.product_uom_qty
-            rec = self.env['stock.quant'].search([('product_id', '=', product.id), ('location_id.name', '=', 'Stock')])
-            y = rec.available_quantity
-            check = (y >= x)
+            product_type = self.env['product.template'].search([('id', '=', product.id)])
+            if product_type.type in ['product', 'consu']:
+                x = o_line.product_uom_qty
+                rec = self.env['stock.quant'].search([('product_id', '=', product.id), ('location_id.name', '=', 'Stock')])
+                y = rec.available_quantity
+                check = (y >= x)
             if not check:
                 break
         return check

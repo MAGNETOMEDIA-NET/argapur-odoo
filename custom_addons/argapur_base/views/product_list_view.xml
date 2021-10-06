@@ -9,7 +9,7 @@
             <field name="arch" type="xml">
                 <filter name="consumable" position="after">
                     <separator/>
-                    <filter string="Synchronisable" name="product_can_be_synchronise"
+                    <filter string="Non Synchronisé" name="product_can_be_synchronise"
                             domain="[('present_sur_site','=',True),('synchronise','=',False)]"/>
                     <filter string="Déjà synchronisé" name="products_already_synchronise"
                             domain="[('synchronise','=',True)]"/>
@@ -25,7 +25,7 @@
                 <xpath expr="//field[@name='barcode']" position="after">
                     <field name="produit_fini"/>
                     <field name="present_sur_site"/>
-                    <field name="synchronise"/>
+                    <field name="synchronise" readonly="1" />
                     <field name="product_wp_id" invisible="1"/>
                 </xpath>
             </field>
@@ -39,7 +39,7 @@
                 <xpath expr="//field[@name='barcode']" position="after">
                     <field name="produit_fini"/>
                     <field name="present_sur_site"/>
-                    <field name="synchronise"/>
+                    <field name="synchronise" readonly="1" />
                     <field name="product_wp_id" invisible="1"/>
                 </xpath>
             </field>
