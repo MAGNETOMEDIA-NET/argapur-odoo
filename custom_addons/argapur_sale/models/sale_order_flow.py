@@ -6,6 +6,7 @@ class SaleOrder(models.Model):
 
     payment_method = fields.Many2one('account.journal', string='Méthode de paiement')
     wp_id = fields.Char('Identifiant', readonly=True)
+    coupon = fields.Monetary('Montant coupon')
 
     def action_confirm(self):
         res = super(SaleOrder, self).action_confirm()

@@ -103,11 +103,17 @@ class WPBaskets(Controller):
             price = (float(item['subtotal']) + float(item['subtotal_tax'])) / float(qty)
             self.create_so_line_ecom(so_lines, product, qty, price)
         sale_order = self.create_so_ecom(partner, so_lines, baskets)
-        discount = float(baskets['discount_total']) + float(baskets['discount_tax'])
-        sale_order.write({
-            'discount_rate': discount,
-        })
-        sale_order.button_dummy()
+        if baskets['discount_total']:
+            discount = float(baskets['discount_total']) + float(baskets['discount_tax'])
+            ship = 0
+            if baskets['shipping_total']:
+                ship = float(baskets['shipping_total'])
+            total = discount + float(baskets['total']) - ship
+            sale_order.write({
+                'discount_rate': (discount / total)*100,
+                'coupon': discount
+            })
+            sale_order.button_dummy()
         try:
             if baskets['shipping_lines'][0]['method_title'] == 'Internationale':
                 self.add_shipping_external(sale_order)
@@ -134,7 +140,7 @@ class WPBaskets(Controller):
             'wp_id': baskets['id'],
             'payment_method': payment_method.id,
             'user_id': user.id,
-            'discount_type': 'amount',
+            'discount_type': 'percent',
         })
         return request.env['sale.order'].sudo().create(order_values)
 
