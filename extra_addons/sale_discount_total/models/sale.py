@@ -40,7 +40,7 @@ class SaleOrder(models.Model):
             order.update({
                 'amount_untaxed': amount_untaxed,
                 'amount_tax': amount_tax,
-                'amount_discount': amount_discount,
+                'amount_discount': round(amount_discount),
                 'amount_total': amount_untaxed + amount_tax,
             })
 
@@ -49,7 +49,7 @@ class SaleOrder(models.Model):
                                      states={'draft': [('readonly', False)], 'sent': [('readonly', False)]},
                                      default='percent')
     discount_rate = fields.Float('Discount Rate', digits="Product Unit of Measure", default=0.0,
-                                 readonly=False, states={'draft': [('readonly', False)], 'sent': [('readonly', False)]})
+                                 readonly=False, invisible=True, states={'draft': [('readonly', False)], 'sent': [('readonly', False)]})
     amount_untaxed = fields.Monetary(string='Untaxed Amount', store=True, readonly=True, compute='_amount_all',
                                      tracking=True)
     amount_tax = fields.Monetary(string='Taxes', store=True, readonly=True, compute='_amount_all',
