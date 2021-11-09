@@ -13,7 +13,8 @@ class SaleOrder(models.Model):
         for order in self:
             invoice_id = order._create_invoice_ecom_posted()
             self.send_invoice_mail(invoice_id)
-            available = self.check_availability(order)
+            emp = 'STOCK SITE WEB'
+            available = self.check_availability(order, emp)
 
             if order.payment_method.name in ['Carte bancaire', 'Paypal']:
                 self.do_register_payment(invoice_id)
@@ -75,14 +76,14 @@ class SaleOrder(models.Model):
 
         return res1.with_context(button_validate_picking_ids=res1.pick_ids.ids).process()
 
-    def check_availability(self, order):
+    def check_availability(self, order, emp):
         check = True
         for o_line in order.order_line:
             product = o_line.product_id
             product_type = self.env['product.template'].search([('id', '=', product.id)])
             if product_type.type in ['product', 'consu']:
                 x = o_line.product_uom_qty
-                rec = self.env['stock.quant'].search([('product_id', '=', product.id), ('location_id.name', '=', 'Stock')])
+                rec = self.env['stock.quant'].search([('product_id', '=', product.id), ('location_id.name', '=', emp)])
                 y = rec.available_quantity
                 check = (y >= x)
             if not check:
