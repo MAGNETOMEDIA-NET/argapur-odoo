@@ -25,7 +25,7 @@ class stockQuantInherited(models.Model):
         location_name = self.env['stock.location'].search([('id','=',vals['location_id'])]).name
         product = self.env['product.product'].search([('id','=',vals['product_id'])])
 
-        if str(location_name).strip() != 'Stock':
+        if str(location_name).strip() != 'STOCK SITE WEB':
             return resp
 
         if not product.product_tmpl_id.synchronise:
@@ -57,9 +57,9 @@ class stockQuantInherited(models.Model):
 
         if 'location_id' in vals:
             location_name = self.env['stock.location'].search([('id','=',vals['location_id'])]).name
-            if location_name != 'Stock':
+            if location_name != 'STOCK SITE WEB':
                 return resp
-        elif self.location_id.name != 'Stock':
+        elif self.location_id.name != 'STOCK SITE WEB':
             return resp
         if not self.product_id.synchronise:
             return resp
