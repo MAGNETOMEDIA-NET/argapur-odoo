@@ -152,10 +152,9 @@ class ProducttemplateInherited(models.Model):
 
     def get_product_qty_available(self):
         product_id = self.env['product.product'].search([('product_tmpl_id', '=', self.id)]).id
-        stock = self.env['stock.quant'].search([('product_id', '=', product_id), ('location_id.name', '=', 'Stock')])
+        stock = self.env['stock.quant'].search([('product_id', '=', product_id), ('location_id.name', '=', 'STOCK SITE WEB')])
         qty_available = stock.quantity - stock.reserved_quantity
         return qty_available
-
 
     def synchronise_product(self):
 
@@ -387,7 +386,7 @@ class ProducttemplateInherited(models.Model):
 
             product_id = self.env['product.product'].search([('product_tmpl_id', '=', product.id)]).id
             stock = self.env['stock.quant'].search(
-                [('product_id', '=', product_id), ('location_id.name', '=', 'Stock')])
+                [('product_id', '=', product_id), ('location_id.name', '=', 'STOCK SITE WEB')])
             product_qty_available = stock.quantity - stock.reserved_quantity
             data = {
                 "name": product.name,
