@@ -20,6 +20,7 @@ wcapi_old = API(
     consumer_secret="cs_3a9c56a3cded7ba6615c86887200bd647e0a892b",
     wp_api=True,
     version="wc/v3",
+    timeout=25,
     query_string_auth=True
 )
 
@@ -186,6 +187,7 @@ class ProducttemplateInherited(models.Model):
             consumer_secret=consumer_secret,
             wp_api=True,
             version="wc/v3",
+            timeout=25,
             query_string_auth=True
         )
 
@@ -329,6 +331,7 @@ class ProducttemplateInherited(models.Model):
             consumer_secret=consumer_secret,
             wp_api=True,
             version="wc/v3",
+            timeout=25,
             query_string_auth=True
         )
 
