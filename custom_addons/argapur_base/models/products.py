@@ -489,6 +489,7 @@ class ProducttemplateInherited(models.Model):
             consumer_secret=consumer_secret,
             wp_api=True,
             version="wc/v3",
+            timeout=99,
             query_string_auth=True
         )
 
