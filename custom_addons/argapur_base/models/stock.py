@@ -12,6 +12,7 @@ wcapi = API(
     consumer_secret="cs_3a9c56a3cded7ba6615c86887200bd647e0a892b",
     wp_api=True,
     version="wc/v3",
+    timeout=99,
     query_string_auth=True
 )
 
