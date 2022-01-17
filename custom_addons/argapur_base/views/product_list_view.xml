@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <data noupdate="0">
+
+        <record id="custom_view_synchronisable_products" model="ir.ui.view">
+            <field name="name">product.template.search</field>
+            <field name="model">product.template</field>
+            <field name="inherit_id" ref="product.product_template_search_view"/>
+            <field name="arch" type="xml">
+                <filter name="consumable" position="after">
+                    <separator/>
+                    <filter string="Non Synchronisé" name="product_can_be_synchronise"
+                            domain="[('present_sur_site','=',True),('synchronise','=',False)]"/>
+                    <filter string="Déjà synchronisé" name="products_already_synchronise"
+                            domain="[('synchronise','=',True)]"/>
+                </filter>
+            </field>
+        </record>
+
+        <record id="product_normal_form_view_add_sync" model="ir.ui.view">
+            <field name="name">product.normal.form</field>
+            <field name="model">product.product</field>
+            <field name="inherit_id" ref="product.product_normal_form_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='barcode']" position="after">
+                    <field name="produit_fini"/>
+                    <field name="present_sur_site"/>
+                    <field name="synchronise" readonly="1" />
+                    <field name="product_wp_id" invisible="1"/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="product_template_only_form_view_add_sync" model="ir.ui.view">
+            <field name="name">product.template.only.form</field>
+            <field name="model">product.template</field>
+            <field name="inherit_id" ref="product.product_template_only_form_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='barcode']" position="after">
+                    <field name="produit_fini"/>
+                    <field name="present_sur_site"/>
+                    <field name="synchronise" readonly="1" />
+                    <field name="product_wp_id" invisible="1"/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="inherit_product_template_tree_view" model="ir.ui.view">
+            <field name="name">product.template.tree.view.inherited</field>
+            <field name="model">product.template</field>
+            <field name="inherit_id" ref="product.product_template_tree_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//tree" position="inside">
+                    <header>
+                        <button name="synchronise_produits_list_avec_wordpress" string="Syncronise" type="object"
+                                class="btn-primary"/>
+                    </header>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="inherit_product_template_form_view" model="ir.ui.view">
+            <field name="name">product.template.form.view.inherited</field>
+            <field name="model">product.template</field>
+            <field name="inherit_id" ref="product.product_template_only_form_view"/>
+            <field name="type">form</field>
+            <field name="arch" type="xml">
+                <header>
+                    <button name="synchronise_product"
+                            attrs="{'invisible':['|',('type','!=','product'),('present_sur_site','=',False)]}"
+                            string="Synchronise" type="object" class="oe_highlight"/>
+
+                    <button name="synchronise_product_price"
+                            attrs="{'invisible':['|',('present_sur_site','=',False),('synchronise','=',False)]}"
+                            string="Synchronise le Prix" type="object" class="oe_highlight"/>
+                </header>
+            </field>
+        </record>
+
+    </data>
+</odoo>

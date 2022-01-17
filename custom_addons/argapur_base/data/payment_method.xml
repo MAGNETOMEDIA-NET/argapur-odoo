@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="argapur_payment_method_paypal" model="account.journal">
+        <field name="name">Paypal</field>
+        <field name="type">bank</field>
+    </record>
+
+    <record id="argapur_payment_method_cmi" model="account.journal">
+        <field name="name">Carte bancaire</field>
+        <field name="type">bank</field>
+    </record>
+
+</odoo>
