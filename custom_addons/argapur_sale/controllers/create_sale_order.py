@@ -61,7 +61,7 @@ class WPBaskets(Controller):
                     child_ids = request.env['res.partner'].sudo().search([('parent_id', '=', partner.id),
                                                                           ('type', '=', 'delivery')], limit=1)
                     if child_ids.street == customer['address_1'] and child_ids.street2 == customer['address_2']:
-                        pass
+                        child_ids.street = customer['address_1']
                     else:
                         shipping_childs = self.create_shipping_childs(baskets, partner)
                         if shipping_childs:
