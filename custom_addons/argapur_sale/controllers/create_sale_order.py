@@ -170,6 +170,7 @@ class WPBaskets(Controller):
         name = customer['first_name'] + ' ' + customer['last_name']
         shipping_childs = {
             'type': 'delivery',
+            'name': name,
             'street': customer['address_1'],
             'parent_id': partner.id,
             'street2': customer['address_2'],
@@ -184,6 +185,7 @@ class WPBaskets(Controller):
         name = customer['first_name'] + ' ' + customer['last_name']
         billing_childs = {
             'type': 'invoice',
+            'name': name,
             'street': customer['address_1'],
             'parent_id': partner.id,
             'street2': customer['address_2'],
