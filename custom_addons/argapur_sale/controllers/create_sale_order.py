@@ -62,6 +62,7 @@ class WPBaskets(Controller):
                                                                           ('type', '=', 'delivery')], limit=1)
                     if child_ids.street == customer['address_1'] and child_ids.street2 == customer['address_2']:
                         child_ids.street = customer['address_1']
+                        return partner
                     else:
                         shipping_childs = self.create_shipping_childs(baskets, partner)
                         if shipping_childs:
