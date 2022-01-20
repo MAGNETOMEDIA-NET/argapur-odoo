@@ -39,12 +39,13 @@ class WPBaskets(Controller):
 
     def _check_partner(self, baskets):
         customer = baskets.get('shipping')
+        customer_invoice = baskets.get('billing')
         country = request.env['res.country'].sudo().search([('code', '=', customer['country'])])
         partner = request.env['res.partner'].sudo().search([('phone', '=', baskets['billing']['phone'])])
         if partner:
             child_ids_invoice = request.env['res.partner'].sudo().search([('parent_id', '=', partner.id),
                                                                           ('type', '=', 'invoice')])
-            new_child_ids_invoice = self.update_billing_child(customer, child_ids_invoice, country)
+            new_child_ids_invoice = self.update_billing_child(customer_invoice, child_ids_invoice, country)
             if baskets['customer_id'] == 0:
                 customer = baskets.get('shipping')
                 child_ids = request.env['res.partner'].sudo().search([('parent_id', '=', partner.id),
@@ -83,6 +84,10 @@ class WPBaskets(Controller):
             partner_values = {
                 'type': 'delivery',
                 'name': name,
+                'street': customer['address_1'],
+                'street2': customer['address_2'],
+                'city': customer['city'],
+                'zip': customer['postcode'],
                 'phone': baskets['billing']['phone'],
                 'email': baskets['billing']['email'],
                 'country_id': country.id,
