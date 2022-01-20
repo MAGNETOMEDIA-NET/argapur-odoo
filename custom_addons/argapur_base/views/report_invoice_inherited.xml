@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+
+    <template id="report_invoice_document_inherited" inherit_id="account.report_invoice_document">
+
+        <xpath expr="//td[@name='account_invoice_line_name']" position="after">
+            <td t-attf-class="text-left {{ 'd-none d-md-table-cell' if report_type == 'html' else '' }}">
+                <span class="text-nowrap" t-field="line.product_barcode"/>
+            </td>
+        </xpath>
+        <xpath expr="//th[@name='th_description']" position="after">
+            <th name="th_barcode" class="text-left">
+                <span>Code Barre</span>
+            </th>
+        </xpath>
+    </template>
+</odoo>
