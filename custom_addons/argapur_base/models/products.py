@@ -237,7 +237,7 @@ class ProducttemplateInherited(models.Model):
             os.remove(image_dst)
 
         data = {
-            "name": self.name,
+            # "name": self.name,
             "type": "simple",
             "regular_price": str(self.list_price),
             "description": self.description,
@@ -247,6 +247,7 @@ class ProducttemplateInherited(models.Model):
             "images": images
         }
         if not self.product_wp_id or self.product_wp_id == "":
+            data["name"] = self.name
             res = wcapi.post("products", data)
             if res.headers.get('content-type').split(';')[0] != 'application/json':
                 if image_id:
@@ -392,7 +393,7 @@ class ProducttemplateInherited(models.Model):
                 [('product_id', '=', product_id), ('location_id.name', '=', 'STOCK SITE WEB')])
             product_qty_available = stock.quantity - stock.reserved_quantity
             data = {
-                "name": product.name,
+                # "name": product.name,
                 "type": "simple",
                 "regular_price": str(product.list_price),
                 "description": product.description,
