@@ -49,7 +49,6 @@ class AccountInvoice(models.Model):
                 # so we don't recompute it here.
                 move.payment_state = move.payment_state
                 continue
-
             total_untaxed = 0.0
             total_untaxed_currency = 0.0
             total_tax = 0.0
